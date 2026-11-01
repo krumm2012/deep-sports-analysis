@@ -50,3 +50,22 @@ PYTHONPATH=src .venv/bin/python examples/camera05_phase_predict.py \
 长期运行的Python服务可复用read_input、frame_features、predict_frames，在进程启动时加载joblib模型和summary，逐次请求仅做特征及预测。示例命令为独立进程调用，每次会重载模型。提供可兼容的运行环境及src/dsa代码，不能只发送joblib文件。
 
 8768当前是绑定127.0.0.1的静态结果服务器，不提供POST推理接口。已算好的93段预测可GET /projects/camera05_custom/semantic-pose-v5/predictions/{clip_id}.json；其他机器访问其自己的127.0.0.1无法到达本机。接入新视频的HTTP服务需要另行封装姿态预处理与推理，不应把静态展示地址当作模型服务。没有在本轮增加公共端口。
+
+## Mac统一工作台：第一阶段已部署
+
+入口：http://127.0.0.1:8777/。原8768静态报告继续保留。工作台通过用户级LaunchAgent常驻运行，运行副本和数据位于`~/Library/Application Support/DeepSportsWorkbench/`；源码仍在Git checkout。为避开launchd访问Documents工作目录的限制，运行代码与环境放在Application Support。既有项目文件采用硬链接（跨磁盘时复制），运行流程只读取旧数据，新模型、导入和标注为独立文件；不能将这份链接镜像视为独立备份。
+
+当前项目原72段完整人工标定已带入本机SQLite，并保存不可变JSON修订。编辑页自动同步，旧浏览器的修改不能覆盖已保存的新版本。训练冻结提交时的标注快照；未确认段不进入完整监督训练。每个项目一次仅运行一个后台任务，独立进程运行、保存日志，失败可使用保留输入重试。旧v5仍为默认模型，新训练版本可单独选择预测和查看报告。
+
+实际验收：
+
+- 工作台完整训练任务`01fd32f39b0b459697535fa96a04ecf9`成功，新目录`semantic-pose-wb-01fd32f39b0b`。x/y/weight/groups/frames/stroke_types/origins全部与v5逐项一致；三个训练/验证样例的预测、分数和接受掩码一致。
+- 用现有18_08视频副本验证导入，不作为新训练数据。导入任务`ce848d19030d40a9898d5305e3595e6d`成功，250帧25fps；5090任务`2727251f42f04efea70b73d78a22e571`成功。人体检测、跟踪、姿态在5090运行后，规范NPZ自动取回Mac，浏览器可播放视频并预测阶段，通过筛选68.4%。该比例是覆盖率。
+- 原manifest哈希仍为71c79acecf0996c69a9647dd65f3d598012c3c1c3aad9919c38271870ad57313；72个人工任务字典完全相同，项目训练/留出预测视频仍共93段。
+- 新增持久化、并发冲突、训练快照、留出隔离、跨站写入拦截、私有文件保护和归档路径保护检查；全量177项测试通过。实际wheel构建包含工作台及标注HTML/JS，修复此前网页模板遗漏。
+
+导入限制是固定机位MP4短片，最长120秒、最大500MB；上传后至少保留2GiB磁盘空间。新视频只做独立推理，不会自动改变原数据划分或加入训练。5090配置使用已有SSH别名，源码和视频仅传入隔离的`data/workbench-incoming/{导入ID}`，不会覆盖原camera05数据。当前没有实现MPS/CoreML视频计算，也没有声称完成跨机位识别、长视频批处理或职业参考完整重算。
+
+运行副本中的`data/.workbench/acceptance.json`保存本次验收记录。持久标注在`data/.workbench/state.sqlite3`及`data/.workbench/annotations/`；新视频在`data/.workbench/imports/`；日志与训练快照在`data/.workbench/jobs/`。这些数据均不进入GitHub提交，应另做独立备份。
+
+本次另外创建了独立的`.venv-workbench`运行环境（不继承系统site-packages），按轻量requirements安装37个包，完成全量CPU检查；LaunchAgent已切换到该环境。源仓库`.github/workflows/workbench.yml`在推送和PR时执行同一组CPU检查。部署脚本可start/restart/stop/status，安装包与源码运行均包含所需HTML/JS。

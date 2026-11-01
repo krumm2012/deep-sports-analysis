@@ -38,6 +38,8 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 dsa = ["*.html", "*.js"]
+"dsa.pages" = ["*.html", "*.js"]
+"dsa.workbench" = ["*.html", "*.js"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

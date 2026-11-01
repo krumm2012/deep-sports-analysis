@@ -1,0 +1,10 @@
+# Lightweight annotation / semantic training environment; no CUDA packages.
+# Match the v5 artifact environment. Use a dedicated virtual environment.
+numpy==2.5.4
+scipy==1.18.1
+scikit-learn==1.8.0
+joblib==1.5.3
+opencv-python==4.13.0.92
+jsonschema>=4.23
+pytest>=8
+supervision==0.30.3

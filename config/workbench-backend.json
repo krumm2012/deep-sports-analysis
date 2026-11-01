@@ -1,0 +1,5 @@
+{
+  "ssh_host": "ubuntu32-sam5090",
+  "project_directory": "/root/deep-sports-analysis",
+  "python": ".venv/bin/python"
+}
