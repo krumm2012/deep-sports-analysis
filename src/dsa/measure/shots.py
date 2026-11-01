@@ -73,7 +73,7 @@ def shots(spec: str) -> tuple[list[dict], dict]:
 
 
 def check(spec: str, n: int = CHECKS) -> dict:
-    """The scoreboard's serve marker (dsa.pages.quiz.server, read by Opus) shortly before n serves spread through the
+    """The scoreboard's serve marker (dsa.pages.quiz.server, read by Codex) shortly before n serves spread through the
     video, against the player numbers: agree / disagree / no marker. A swapped naming disagrees throughout, a
     mixed one in part."""
     from dsa.pages.quiz import server

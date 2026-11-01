@@ -1,7 +1,7 @@
 """Getting a video's footage to projects/<project>/<video>/source.mp4, from YouTube or a local recording.
 
     python -m dsa.ingest.download list
-    python -m dsa.ingest.download start federer_usopen/2015_djokovic   # where play starts (Opus), for the catalog
+    python -m dsa.ingest.download start federer_usopen/2015_djokovic   # where play starts (Codex), for the catalog
     python -m dsa.ingest.download get federer_usopen/2015_djokovic     # YouTube: only the kept minutes from there
     python -m dsa.ingest.download get tests/own_drew                   # a 5-minute cut of a local recording
     python -m dsa.ingest.download get atp_hardcourt/2024_ao_sinner_medvedev   # whole upload kept in raw/<project>/
@@ -51,10 +51,10 @@ def fetch(yt: str, full: Path) -> None:
 
 def start(spec: str) -> int:
     """The second play starts in a YouTube upload (after walk-ons, coin toss and warm-up), from a frame every
-    EVERY s of its first LOOK s, read by Opus. Frames in raw/starts/<id>/."""
+    EVERY s of its first LOOK s, read by Codex. Frames in raw/starts/<id>/."""
     from concurrent.futures import ThreadPoolExecutor
 
-    from dsa.opus import ask
+    from dsa.codex import ask
 
     project, video = spec.split("/")
     yt, match = (PROJECTS[project]["videos"].get(video) or MORE[video])[:2]

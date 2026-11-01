@@ -1,4 +1,4 @@
-"""Snap rough court points (Opus or TennisCourtDetector) onto the painted lines.
+"""Snap rough court points (Codex or TennisCourtDetector) onto the painted lines.
 
 Given 14 rough points (dsa.scene.court POINTS order) and the frame:
 

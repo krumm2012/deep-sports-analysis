@@ -1,0 +1,28 @@
+{
+  "assets": {
+    "code/wasb/pretrained_weights/wasb_tennis_best.pth.tar": {
+      "bytes": 6102633,
+      "sha256": "9d391239ab10c733f8e5bfadf16ab72838e7a8ebc88e8ae2038501c03d42b4bb"
+    },
+    "models/f3ed/checkpoint_049.pt": {
+      "bytes": 22649709,
+      "sha256": "74539f80559615312aa3ad2631bfe96be4eff3f713dd05797340a9676c8711b8"
+    },
+    "models/f3ed/config.json": {
+      "bytes": 364,
+      "sha256": "f8e0d763a6b705ecf84f20372456e333105f3a3f5e43e4b01b102049d894eae1"
+    },
+    "models/rfdetr/rf-detr-medium.pth": {
+      "bytes": 404992918,
+      "sha256": "749ff6071828aaffac63e204c4f4135ed3d6cdae4d702e086c360edc3b5768c8"
+    },
+    "models/rtmw/rtmw.onnx": {
+      "bytes": 229320930,
+      "sha256": "bd033156e5104c4f5d2edfe0453e02661e30a2f3da453ec93c8764d561b83054"
+    }
+  },
+  "code": {
+    "wasb": "923462cacdeb3353b84ddebdedb3f4b7a8553b0f",
+    "f3set": "04c6013d0aab13a3f92be58aed958becbcac392d"
+  }
+}

@@ -1,11 +1,11 @@
-"""Claude as a Tennis Coach, its Other players tab: Figure 4 (the heatmap and its clips) for the players who sent us
-their footage (the others project) against the pros, and what Claude, given only those measurements, told each of
+"""Codex as a Tennis Coach, its Other players tab: Figure 4 (the heatmap and its clips) for the players who sent us
+their footage (the others project) against the pros, and what Codex, given only those measurements, told each of
 them to fix.
 
     python -m dsa.pages.others_tab
 
-Writes data/projects/others/review/tab/: tab.html (the tab's figure, its data and Claude's box, ids ending "-o" so
-it sits on the page beside Figure 4), coach.json (Claude's answers) and ours' clips, rendered (when missing) beside the
+Writes data/projects/others/review/tab/: tab.html (the tab's figure, its data and Codex's box, ids ending "-o" so
+it sits on the page beside Figure 4), coach.json (Codex's answers) and ours' clips, rendered (when missing) beside the
 pros' in atp_hardcourt/review/profiles/ (the page's clips) and copied here.
 """
 from __future__ import annotations
@@ -59,7 +59,7 @@ SCHEMA = {"type": "object", "additionalProperties": False, "required": ["strokes
 
 
 def rows(res: dict, extra: dict, q: str, order: list[tuple[str, str]], zs: dict, pros: list[str]) -> tuple[str, str]:
-    """What Claude is given about player q: his stroke counts, and one line per trait in the figure he is measured
+    """What Codex is given about player q: his stroke counts, and one line per trait in the figure he is measured
     on: his median and middle half, the pros' median and range, z."""
     g, gres = extra[q]
     units = {(r["kind"], r["name"]): r["unit"] for r in tests(PROJECT)}
@@ -83,8 +83,8 @@ def rows(res: dict, extra: dict, q: str, order: list[tuple[str, str]], zs: dict,
 
 
 def coach(extra: dict, order: list[tuple[str, str]], cache) -> dict[str, dict]:
-    """Each of ours: Claude's answer, from a blank context, to the measurements alone (dsa.opus, cached)."""
-    from dsa import opus
+    """Each of ours: Codex's answer, from a blank context, to the measurements alone (dsa.codex, cached)."""
+    from dsa import codex
 
     res, _ = load(PROJECT)
     pros = list(PROJECTS[PROJECT]["players"])
@@ -92,7 +92,7 @@ def coach(extra: dict, order: list[tuple[str, str]], cache) -> dict[str, dict]:
 
     def one(q):
         counts, rs = rows(res, extra, q, order, zs, pros)
-        a, sec = opus.ask(PROMPT.format(name=label_of(q, extra), strokes=counts, rows=rs), [], SCHEMA, cache,
+        a, sec = codex.ask(PROMPT.format(name=label_of(q, extra), strokes=counts, rows=rs), [], SCHEMA, cache,
                           effort="high")
         print(q, f"{sec:.0f} s", flush=True)
         return q, a
@@ -101,7 +101,7 @@ def coach(extra: dict, order: list[tuple[str, str]], cache) -> dict[str, dict]:
 
 
 def box(extra: dict, answers: dict) -> str:
-    """Claude's answers, one player at a time, laid out as the page's Figure 7 (figure.claudefig: its .seg buttons,
+    """Codex's answers, one player at a time, laid out as the page's Figure 7 (figure.claudefig: its .seg buttons,
     one .adv row per stroke and its fix, then what to work on first)."""
     who, e = list(extra), html.escape
     key = lambda q: label_of(q, extra).lower().replace(" ", "-")            # noqa: E731
@@ -116,7 +116,7 @@ def box(extra: dict, answers: dict) -> str:
         parts.append(f'<div data-for="{key(q)}"{"" if i == 0 else " hidden"}>\n{rows}'
                      f'<div class="adv"><h4>In order</h4><div><p>{e(a["order"])}</p></div></div>\n</div>\n')
     return (f'<section class="wrap"><figure class="claudefig" id="claude-o"><div class="claude"><div class="claude-head">'
-            f'<span class="claude-tag">Claude\'s advice for</span><span class="seg">{buttons}</span></div>\n'
+            f'<span class="claude-tag">Codex\'s advice for</span><span class="seg">{buttons}</span></div>\n'
             f'{"".join(parts)}</div></figure></section>')                   # .wrap: the text's width, as Figure 7
 
 

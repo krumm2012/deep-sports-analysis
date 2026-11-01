@@ -1,7 +1,123 @@
 """The GPU steps' laptop-side logic, with stand-ins for the models: nothing runs a model here."""
 import numpy as np
+import pytest
 
 from dsa.gpu import cuts, strokes
+
+
+def _crowded_video(monkeypatch, *, tv=False):
+    """Three frames each contain more people than a small pose forward permits."""
+    from dsa import video
+    from dsa.gpu import process as P
+    from dsa.gpu import models as M
+    from dsa.scene import court, tracks
+
+    frames = [np.full((16, 16, 3), i, np.uint8) for i in range(3)]
+    monkeypatch.setattr(video, "frames", lambda *a, **k: iter(frames))
+    monkeypatch.setattr(video, "info", lambda _: (30, 16, 16))
+    monkeypatch.setattr(tracks, "track", lambda boxes, *a, **k: [np.arange(len(b)) for b in boxes])
+    monkeypatch.setattr(tracks, "people", lambda *a, **k: {
+        "people": {j: {"still": False} for j in range(5)}, "person_of": {j: j for j in range(5)}})
+    monkeypatch.setattr(court, "check_tv", lambda *a: np.zeros((14, 2)))
+    monkeypatch.setattr(court, "homography", lambda _: None)
+    batches = []
+
+    class Det:
+        def people(self, fs):
+            return [np.array([[j, 0, j + 1, 10, .9] for j in range(5)], np.float32) for _ in fs]
+
+    class Ball:
+        small = staticmethod(lambda f: f)
+
+        def locate(self, triplets, *a):
+            return np.zeros((len(triplets), 4))
+
+    class Pose:
+        def prepare(self, frame, box):
+            return int(frame[0, 0, 0]) * 10 + int(box[0])
+
+        def run(self, crops):
+            assert len(crops) <= 3, "oversized pose forward can exhaust GPU memory"
+            batches.append(list(crops))
+            return [np.full((len(M.KP), 3), v, np.float32) for v in crops]
+
+    models = {"det": Det(), "ball": Ball(), "pose": Pose()}
+    if tv:
+        models["tcd"] = object()
+    return P, M, models, batches, Det, Ball, Pose
+
+
+@pytest.mark.parametrize("tv", [False, True])
+def test_pose_forwards_have_a_hard_limit_and_keep_frame_box_order(tmp_path, monkeypatch, tv):
+    P, _, models, batches, *_ = _crowded_video(monkeypatch, tv=tv)
+    originals = dict(models)
+    out = tmp_path / "raw.npz"
+    P.process("crowded.mp4", str(out), tv=tv, batch=2, pose_batch=3, models=models)
+    expected = [i * 10 + j for i in range(3) for j in range(5)]
+    assert [v for batch in batches for v in batch] == expected
+    assert np.load(out)["kp"][:, 0, 0].tolist() == expected
+    assert models == originals  # A caller's shared models remain reusable.
+
+
+def test_phone_releases_owned_pass1_models_before_constructing_pose(tmp_path, monkeypatch):
+    import sys
+    import weakref
+    from types import SimpleNamespace
+
+    P, M, _, _, Det, Ball, Pose = _crowded_video(monkeypatch)
+    refs, releases = [], []
+
+    def load(*a):
+        det, ball = Det(), Ball()
+        refs.extend([weakref.ref(det), weakref.ref(ball)])
+        return {"det": det, "ball": ball}
+
+    class CheckedPose(Pose):
+        def __init__(self, device):
+            assert all(r() is None for r in refs), "pass1 models still occupy GPU memory"
+            assert releases == [True], "unused CUDA cache must be released before ORT allocation"
+
+    monkeypatch.setattr(P, "load_models", load)
+    monkeypatch.setattr(M, "Pose", CheckedPose)
+    monkeypatch.setitem(sys.modules, "torch", SimpleNamespace(cuda=SimpleNamespace(empty_cache=lambda: releases.append(True))))
+    P.process("crowded.mp4", str(tmp_path / "raw.npz"), pose_batch=3)
+
+
+@pytest.mark.parametrize("size", [0, -1, 1.5, True])
+def test_invalid_pose_limit_is_rejected_before_video_or_models_are_opened(size):
+    from dsa.gpu.process import process
+
+    with pytest.raises(ValueError, match="pose_batch"):
+        process("missing.mp4", "unused.npz", pose_batch=size)
+
+
+@pytest.mark.parametrize("pose_still", [False, True])
+def test_stationary_drill_players_can_be_posed_without_changing_default(tmp_path, monkeypatch, pose_still):
+    from dsa.scene import tracks
+
+    P, _, models, batches, *_ = _crowded_video(monkeypatch)
+    monkeypatch.setattr(tracks, "people", lambda *a, **k: {
+        "people": {j: {"still": True} for j in range(5)}, "person_of": {j: j for j in range(5)}})
+    result = P.process("drill.mp4", str(tmp_path / "raw.npz"), models=models,
+                       pose_batch=3, pose_still=pose_still)
+    assert result["posed"] == (15 if pose_still else 0)
+    assert sum(map(len, batches)) == result["posed"]
+
+
+def test_pose_rejects_silent_cpu_fallback(monkeypatch):
+    import sys
+    from types import SimpleNamespace
+
+    import pytest
+
+    from dsa.gpu.models import Pose
+
+    session = SimpleNamespace(get_providers=lambda: ["CPUExecutionProvider"])
+    monkeypatch.setitem(sys.modules, "torch", SimpleNamespace())
+    monkeypatch.setitem(sys.modules, "onnxruntime", SimpleNamespace(preload_dlls=lambda: None))
+    monkeypatch.setitem(sys.modules, "rtmlib", SimpleNamespace(RTMPose=lambda *a, **k: SimpleNamespace(session=session)))
+    with pytest.raises(RuntimeError, match="could not activate CUDA"):
+        Pose("cuda")
 
 
 def test_cuts_merge_short_views():

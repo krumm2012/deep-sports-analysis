@@ -1,6 +1,6 @@
 """The court in every frame: 14 points where court lines cross, in the order of POINTS.
 
-  phone   the camera is fixed: Opus marks the court once, on the video's middle frame, snapped to the painted
+  phone   the camera is fixed: Codex marks the court once, on the video's middle frame, snapped to the painted
           lines (dsa.scene.court_snap; kept as marked when the snap fails), and it holds for every frame.
   tv      the camera pans and cuts. TennisCourtDetector runs every COURT_EVERY frames on the GPU
           (dsa.gpu.process); its points are kept when they form a plausible whole court, else snapped to the lines.
@@ -103,7 +103,7 @@ def in_area(xy: np.ndarray) -> np.ndarray:
 
 def consistent(pts: np.ndarray, w: int) -> np.ndarray:
     """Marked points made one court: a homography fitted without the points that disagree with the rest (RANSAC,
-    within CONSISTENT of the frame's width), each point then put where it says. Opus now and then labels a line
+    within CONSISTENT of the frame's width), each point then put where it says. Codex now and then labels a line
     wrong (the far service line, squeezed behind the net on a low phone), which would skew the whole court."""
     m, agree = cv2.findHomography(np.float32(REF), np.float32(pts[:, :2]), cv2.RANSAC, CONSISTENT * w)
     if m is None or agree.sum() < 8:
@@ -153,9 +153,9 @@ def snap(bgr: np.ndarray, rough: np.ndarray) -> tuple[np.ndarray, bool]:
     return (np.float32(rough)[:, :2] if res is None else np.asarray(res["points"], np.float32)), res is not None
 
 
-def ask_opus(video: str, frame: int, work: Path, what: str = "tennis video filmed on a phone") -> tuple[np.ndarray, bool]:
-    """Opus marks the court on `frame`, snapped to the lines where possible: ((14, 2), snapped)."""
-    from dsa.opus import ask
+def ask_codex(video: str, frame: int, work: Path, what: str = "tennis video filmed on a phone") -> tuple[np.ndarray, bool]:
+    """Codex marks the court on `frame`, snapped to the lines where possible: ((14, 2), snapped)."""
+    from dsa.codex import ask
 
     work.mkdir(parents=True, exist_ok=True)
     if not (work / "diagram.png").exists():
@@ -170,15 +170,15 @@ def ask_opus(video: str, frame: int, work: Path, what: str = "tennis video filme
 
 
 def phone(video: str, work: Path) -> None:
-    """Marks the court into <work>/court.npz: Opus on the middle frame, for every frame (the module's docstring).
+    """Marks the court into <work>/court.npz: Codex on the middle frame, for every frame (the module's docstring).
     Needs only the video, so it can run while the GPU step does (dsa.scene.run --court-marked); phone_saved reads
     it back."""
     cap = cv2.VideoCapture(str(video))
     fps, n = cap.get(cv2.CAP_PROP_FPS), int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     cap.release()
-    court, ok = ask_opus(video, n // 2, work)
+    court, ok = ask_codex(video, n // 2, work)
     np.savez(work / "court.npz", start=np.array([0]), end=np.array([n]), points=np.array([court[:, :2]], float),
-             log=np.array([f"0-{n / fps:.0f} s: Opus" + (", snapped" if ok else ", as marked")]))
+             log=np.array([f"0-{n / fps:.0f} s: Codex" + (", snapped" if ok else ", as marked")]))
 
 
 def phone_saved(work: Path, n: int) -> tuple[list[np.ndarray | None] | None, list[str]]:

@@ -19,7 +19,7 @@ dependencies = [
     "pyarrow==25.0.1",
     "numpy==2.4.6",
     "pillow==12.3.0",
-    "anthropic==1.8.0",
+    "jsonschema>=4.23",
     "scenedetect==0.7.1",
     "yt-dlp==2026.8.19",
     "umap-learn>=0.5.12",

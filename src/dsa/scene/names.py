@@ -1,4 +1,4 @@
-"""Step 4: which of Player 1 / Player 2 is the project's player ("who" in dsa.ingest.projects), asked of Opus once per
+"""Step 4: which of Player 1 / Player 2 is the project's player ("who" in dsa.ingest.projects), asked of Codex once per
 video; for a video whose two players are listed (the quiz), which is which. It sees CROPS moments of each
 player, spread over the video and taken at the near end where they are biggest, with what the project and video
 are (e.g. "Final vs Djokovic"), and names both.
@@ -17,7 +17,7 @@ import cv2
 import numpy as np
 
 from dsa.ingest.projects import PROJECTS, pair
-from dsa.opus import ask
+from dsa.codex import ask
 from dsa.paths import video_dir
 from dsa.video import frame_at
 
@@ -91,7 +91,7 @@ def name(spec: str, test: bool = False) -> dict:
         prompt = (f"{p['what']} " + shown + f"Which of them is {p['who']}? Name both players, " + why)
     a, _ = ask(prompt, imgs, SCHEMA, src / "names_cache")
     out = {"1": a["player_1"], "2": a["player_2"], "who": a["who"], "sure": a["sure"], "why": a["why"]}
-    if both:                                       # the listed spellings, in the order Opus put them
+    if both:                                       # the listed spellings, in the order Codex put them
         out["1"], out["2"] = both if a["who"] == 1 else both[::-1]
     (d / "names.json").write_text(json.dumps(out, indent=1))
     return out

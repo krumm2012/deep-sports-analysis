@@ -1,0 +1,51 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>camera 05 定制 MoSeq 训练方法</title><style>body{max-width:1000px;margin:36px auto;padding:0 22px;font:17px/1.75 system-ui;color:#172536}pre{white-space:pre-wrap;background:#f0f4f7;padding:18px;border-radius:8px;overflow-wrap:anywhere}table{border-collapse:collapse;width:100%}th,td{text-align:left;padding:10px;border-bottom:1px solid #ccd7df}a{color:#145b94}.note{background:#fff3d5;padding:16px}</style>
+<h1>camera 05 定制 MoSeq 训练方法</h1>
+<p>本记录定义本次从头训练的数据处理、参数和验证流程。原始材料为5090上的 <code>/root/deep-sports-analysis/data/projects/camera_05.zip</code>：115段视频、原始总时长1151.145629秒、28628个原始帧。目标是学习该机位练习中的重复姿态动态阶段，输出逐帧状态和潜在姿态轨迹。</p>
+<p class="note">当前实验统一为恒定25fps，MoSeq也使用25fps。旧8秒30fps试验的PCA、checkpoint和结果均不参与本次训练。检测和姿态网络使用现成冻结权重；从头学习的是MoSeq模型。</p>
+<h2>原始材料与25fps时间轴</h2>
+<p>保留ZIP、解压原始录像及SHA256，忽略macOS附带文件，拒绝不安全的压缩包路径。先读取原始显示时间戳PTS，再以ffmpeg的fps过滤器重采样到25fps，缩放至1280×720，移除音频。没有根据容器中可能不准确的名义50fps来解释动作速度，也没有上采样到30fps。</p>
+<pre>ffmpeg -i ORIGINAL.mp4 -vf 'fps=25,scale=1280:720' -an \
+  -c:v libx264 -crf 18 -preset veryfast -movflags +faststart source.mp4</pre>
+<p>所有标准化视频逐一检查帧率和帧数。原始PTS保存在每段的source-provenance.json；NPZ还保存标准视频帧号和最近原始PTS关联。这种最近PTS关联供审计，并非ffmpeg精确像素选择的证明。重采样产生的重复关联不算新增独立信息。</p>
+<h2>主体选择与关键点</h2>
+<p>RF-DETR Medium逐帧检测人物，ByteTrack在每段视频内跟踪并拼接短暂中断。主练习区域为归一化坐标[0.35, 0.08, 0.98, 0.97]，候选框身高至少占图像高度20%。按区域内持续时间和身体大小选主体，要求覆盖至少80%的片段。保留原地挥拍者；不沿用把静止人物当观众排除的比赛规则。空场或跟踪不合格会记入排除清单。</p>
+<p>为降低重复加载和显存占用，先用同一检测模型跑完整批，再释放模型及CUDA缓存；之后只加载一次RTMW-x姿态模型，按最多32个人体裁剪的批次推理。此流程只提取身体运动，不运行球、球场标定或F3ED转播动作分类。</p>
+<p>保留鼻、双肩、肘、腕、髋、膝、踝和双脚趾/脚跟共19点。沿用项目的短时左右翻转修正、异常跳点抑制、短缺口插值和轻度Savitzky–Golay平滑。要求原始关键点观测覆盖至少90%；最终插补或低置信点的置信度设为0。RTMW分数除以3后截断到[0,1]是工程映射，未经本场景人工误差标定，观测覆盖率不能视作关键点准确率。</p>
+<pre>coordinates = (cleaned_xy - clip_median_hip_center) / clip_median_torso_length * 100
+confidences = clip(raw_RTMW_score / 3, 0, 1)  # 插补/低分位置另置0
+输入：coordinates[T,19,2]、confidences[T,19]、bodyparts[19]、fps=25、frame_indices[T]
+附加审计：image_coordinates、raw_observed、source_original_frame_indices、metadata</pre>
+<h2>完整视频划分与防泄漏</h2>
+<p>按文件名MM.SS排序，已用跨时段截图中的画面时钟核对其先后关系。仅将结束时间不晚于16分30秒的合格完整片段用于训练，18分起的合格完整片段用于验证；中间至少90秒作为时间隔离区。跨边界的片段整体排除，绝不把相邻帧随机拆成训练和验证。重复原始SHA不得跨集合出现。每段始终作为独立序列，不在片段首尾之间学习虚构转移。</p>
+<p>本次最终划分为81段训练（810.28秒）、21段留出验证（211.92秒），4段时间隔离和9段质量排除。最终manifest在模型启动前冻结，模型目录内另存副本和SHA。PCA只在训练集拟合；验证关键点不更新PCA或模型参数。验证集仍来自同一机位和同一场练习，因此只检验留出时段，不能证明跨人或跨机位泛化。</p>
+<h2>模型与冻结推断</h2>
+<p>在独立的.venv-moseq环境运行keypoint-moseq 0.6.6、JAX 0.6.2、NumPy 1.26.4，强制检查CUDA设备，不允许静默回落CPU。每个随机种子都从新PCA和新MoSeq参数初始化；使用8个可用状态、6维潜变量，100轮AR初始化后再运行500轮完整模型采样。持续时间先验kappa分别为1000000和100000。状态数量是容量上限，状态编号不等于预定义网球动作。</p>
+<p>固定斜视机位使用fix_heading=True，并显式传入PCA、完整采样和推断：PCA按帧去中心，不按鼻—髋方向旋转；模型heading固定为0。这保留图像中的侧倾，heading不能解释为球场上的真实三维朝向。模型包含离散状态、低维连续姿态、位置与观测噪声；该生成结构用于把姿态动态与关键点抖动分开，参见<a href="https://www.nature.com/articles/s41592-024-02318-2">Keypoint-MoSeq原论文，Nature Methods 2024</a>。</p>
+<p>种子0预设为基线，种子1和2用于稳定性对照，不按验证结果挑选“最好看”的种子。训练与验证最终都用官方apply_model重新推断，避免直接比较拟合中的训练状态与新数据推断状态；官方文档也提示这两种方式可能存在差异。apply_model的states_only=True保持学习参数不变，本流程保存实装源码SHA并核对参数树在推断前、返回模型以及原模型中的SHA完全一致。参见<a href="https://keypoint-moseq.readthedocs.io/en/latest/modeling.html">官方建模教程</a>和<a href="https://keypoint-moseq.readthedocs.io/en/latest/_modules/keypoint_moseq/fitting.html">官方推断实现</a>。</p>
+<p>已核查实装0.6.6存在兼容性细节：apply_model把fix_heading传给初始化，却未传入每步采样。本项目的apply_frozen在单次推断范围内为采样调用补传fix_heading=True，退出时恢复原函数；不改写heading输出或潜在轨迹。该修复包含参数透传和异常恢复测试，实际GPU试跑也检查所有heading为0。未来对新视频推断应沿用本项目封装，不能只调用未经修复的上游apply_model。</p><h2>复现命令</h2>
+<p>工作目录为5090上的/root/deep-sports-analysis。已经生成模型的目录不能覆盖；重做实验应使用新的数据/模型目录。</p>
+<pre>PYTHONPATH=src .venv/bin/python -m dsa.ingest.camera_dataset all \
+  --archive data/projects/camera_05.zip --root data/projects/camera05_custom
+
+PYTHONPATH=src .venv/bin/python -m dsa.ingest.camera_split \
+  --manifest data/projects/camera05_custom/manifest.json \
+  --train-end 990 --validation-start 1080
+
+# 对seed 0、1、2分别运行，使用各自全新输出目录：
+PYTHONPATH=src .venv-moseq/bin/python -m dsa.measure.moseq_dataset \
+  --manifest data/projects/camera05_custom/manifest.json \
+  --output data/projects/camera05_custom/models/seed0 --seed 0 \
+  --num-states 8 --latent-dim 6 --ar-iters 100 --full-iters 500 --apply-iters 200 \
+  --kappa-ar 1000000 --kappa-full 100000
+
+PYTHONPATH=src .venv/bin/python -m dsa.pages.moseq_dataset_report \
+  --manifest data/projects/camera05_custom/manifest.json \
+  --runs data/projects/camera05_custom/models/seed0 \
+         data/projects/camera05_custom/models/seed1 \
+         data/projects/camera05_custom/models/seed2 \
+  --output data/projects/camera05_custom/review</pre>
+<h2>如何判断输出是否有效</h2>
+<p>首先检查全部输入/输出的长度、有限数值、25fps和源文件SHA，确认保存到目标迭代的checkpoint。训练与验证分别计算状态占比、连续片段持续时间、短片段比例和单状态塌缩；不把片段边界计算为动作切换。再比较不同种子的ARI/NMI，并查看最后100轮训练快照的一致性。占比分布的JS差异和总变差用于检查时段差异，不设未经验证的“准确率”阈值。</p>
+<p>最后必须看原视频：每个状态尽量从不同视频取典型帧，验证阶段提供完整骨架/状态叠加片段，核对状态是否反复对应相似的身体阶段。ARI/NMI只衡量分组一致性；没有人工动作真值，不能报告动作识别准确率。二维身体点不包含球拍或触球信息，透视缩放和遮挡也可能影响状态，不能直接据此给出三维生物力学或击球质量结论。</p>
+<p>实际样本分配、失败清单、训练耗时、模型状态和数值结果，以本次manifest、各模型summary及验证报告为准。模型输出包括每段逐帧syllable、latent_state、centroid、heading和原帧号；持久化模型包括PCA、config和checkpoint。</p>
+</html>

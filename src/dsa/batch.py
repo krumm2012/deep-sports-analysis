@@ -108,6 +108,7 @@ def count(name: str) -> int:
 
 
 def run(project: str) -> None:
+    (ROOT / "logs/batch").mkdir(parents=True, exist_ok=True)
     lock = open(ROOT / "logs/batch" / f"{project}.lock", "w")      # held while this batch runs
     try:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)

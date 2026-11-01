@@ -1,0 +1,17 @@
+{
+  "source_validation": {
+    "what": "Public 2025 Peter/Richard upload kbBfuwNfNj8: first 60 seconds, not the private 2026 recording",
+    "strokes": true,
+    "videos": {
+      "phone_2025": [
+        "yt:kbBfuwNfNj8",
+        "Public phone practice, 2025",
+        0,
+        60
+      ]
+    },
+    "gpu": {
+      "batch": 4
+    }
+  }
+}

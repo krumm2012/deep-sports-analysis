@@ -2,7 +2,7 @@
 raw.npz (dsa.gpu.process) to who played, where, and when they hit the ball. TV is assumed when kept.json exists.
 
   people     tracks joined into people, still ones marked (dsa.scene.tracks)
-  court      phone: Opus once per camera position; tv: the GPU step's court checks (dsa.scene.court)
+  court      phone: Codex once per camera position; tv: the GPU step's court checks (dsa.scene.court)
   players    per frame, near and far: the person playing in each half (dsa.scene.players)
   identity   phone: Player 1 / Player 2 for the whole clip, from what they wear (dsa.scene.identity). TV: what
              each near-end person wears (dsa.scene.who.looks); who is who is settled over the whole match,

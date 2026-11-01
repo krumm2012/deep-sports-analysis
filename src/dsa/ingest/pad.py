@@ -10,7 +10,7 @@ again (dsa.measure.technique extract, dsa.measure.profiles) and the next piece i
 Each piece goes through dsa.batch (cut, models, players, names, renders) before the next one starts. What was
 added is in projects/atp_hardcourt/pad.json (read by dsa.ingest.projects); what failed in pad_failed.json.
 
-    python -m dsa.ingest.pad [--target 70] [--budget 75]     (ANTHROPIC_API_KEY set: names and starts read by Opus)
+    python -m dsa.ingest.pad [--target 70] [--budget 75]     (Codex CLI logged in: names and starts read by Codex)
 """
 from __future__ import annotations
 

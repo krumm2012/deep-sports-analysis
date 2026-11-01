@@ -9,8 +9,8 @@ video is kept.mp4 (TV: the kept frames, from dsa.gpu.cuts) or source.mp4 (phone)
            feet are in the playing area (dsa.scene.court.in_area). A project's "gpu" options (dsa.ingest.projects) can pose
            the near end only and check the court less often. Cached as raw.pass1.npz.
   people   ByteTrack, restarted at each cut between kept pieces, stitched, the still ones marked (dsa.scene.tracks).
-  pass 2   phone only (its court comes later, from Opus): decode again; RTMW-x on every tracked, non-still
-           box. Crops are prepared on a thread pool, POSE_BATCH per forward.
+  pass 2   phone only (its court comes later, from Codex): decode again; RTMW-x on every tracked, non-still
+           box. Crops are prepared on a thread pool, at most pose_batch per forward.
 
     raw.npz  n (boxes per frame), boxes (sum n x 5: x1 y1 x2 y2 conf), track (ByteTrack id, -1 none),
              kp (sum n x 65 x 3: x y score, NaN when not posed), ball (frames x 4: found x y score),
@@ -27,16 +27,21 @@ import numpy as np
 
 from dsa.paths import video_dir
 
-BATCH, POSE_BATCH = 16, 128
+BATCH, POSE_BATCH = 16, 32
 CHUNK = 64                      # frames decoded before their ball inputs and court checks run in parallel
 
 
 def process(video: str, out: str, tv: bool = False, device: str = "cuda", pose_device: str = "cuda",
             limit: int = 0, batch: int = BATCH, on_pass1=None, breaks=(), near_only: bool = False,
-            court_every: int = 0, models: dict | None = None) -> dict:
+            court_every: int = 0, models: dict | None = None, pose_batch: int = POSE_BATCH,
+            pose_still: bool = False) -> dict:
     """TV options (a project's "gpu" in dsa.ingest.projects): near_only poses only people at the near end (a quarter of
     the skeletons, and all the stroke and movement analysis uses); court_every checks the court that often (frames;
-    default COURT_EVERY). models: already loaded ones (load_models), shared by runs side by side on one GPU."""
+    default COURT_EVERY). pose_batch is a hard upper bound independent of the detection batch.
+    pose_still also poses stationary tracks, for drills where the player swings in place.
+    models: already loaded ones (load_models), shared by runs side by side on one GPU."""
+    if isinstance(pose_batch, bool) or not isinstance(pose_batch, int) or pose_batch < 1:
+        raise ValueError("pose_batch must be a positive integer")
     import cv2
 
     from dsa.gpu.models import KP, Pose
@@ -60,8 +65,12 @@ def process(video: str, out: str, tv: bool = False, device: str = "cuda", pose_d
 
     def flush():
         t = time.time()
-        for (i, j, _), k in zip(crops, pose.run([c[2] for c in crops])):
-            kp[i][j] = k
+        # A single frame/detection batch can push the buffer past the threshold.
+        # Bound every forward, not just when the buffer is flushed.
+        for start in range(0, len(crops), pose_batch):
+            group = crops[start:start + pose_batch]
+            for (i, j, _), k in zip(group, pose.run([c[2] for c in group])):
+                kp[i][j] = k
         crops.clear()
         tm["pose"] += time.time() - t
 
@@ -103,7 +112,7 @@ def process(video: str, out: str, tv: bool = False, device: str = "cuda", pose_d
                 crops.extend((i, j, c) for (i, j, _), c in
                              zip(want, pool.map(lambda w: pose.prepare(w[2], boxes[w[0]][w[1]]), want)))
                 tm["pose"] += time.time() - t
-                if len(crops) >= POSE_BATCH:
+                if len(crops) >= pose_batch:
                     flush()
 
         def run_ball(upto: int):                # frames whose next neighbour has arrived (or the last frame)
@@ -181,6 +190,18 @@ def process(video: str, out: str, tv: bool = False, device: str = "cuda", pose_d
                  **({"court": np.array(checks), "kp": np.concatenate(kp)} if tv else {}))
         if on_pass1:
             on_pass1()
+        if not tv and models is None:
+            # Phone pass 2 uses only ORT pose inference. Release the models we
+            # own, including closure cells, before ORT reserves its CUDA arena.
+            # Caller-supplied/shared models and TV's in-pass pose stay intact.
+            del m, det, ball, tcd
+            import gc
+
+            gc.collect()
+            if device == "cuda":
+                import torch
+
+                torch.cuda.empty_cache()
 
     # people: track, stitch, mark the still ones
     t = time.time()
@@ -197,7 +218,7 @@ def process(video: str, out: str, tv: bool = False, device: str = "cuda", pose_d
         want: dict[int, list[int]] = {}
         for i in range(n):
             for j in np.flatnonzero(ids[i] >= 0):
-                if pp["person_of"][int(ids[i][j])] not in still:
+                if pose_still or pp["person_of"][int(ids[i][j])] not in still:
                     want.setdefault(i, []).append(j)
         posed = sum(map(len, want.values()))
         if want:
@@ -205,7 +226,7 @@ def process(video: str, out: str, tv: bool = False, device: str = "cuda", pose_d
             for i, f in enumerate(frames(video, limit)):
                 js = want.get(i, [])
                 crops.extend((i, j, c) for j, c in zip(js, pool.map(lambda j: pose.prepare(f, boxes[i][j]), js)))
-                if len(crops) >= POSE_BATCH:
+                if len(crops) >= pose_batch:
                     flush()
             if crops:
                 flush()

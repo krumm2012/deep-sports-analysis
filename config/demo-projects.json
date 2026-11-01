@@ -1,0 +1,26 @@
+{
+  "demo": {
+    "what": "23-second phone rally from the project's public demonstration page",
+    "who": "Peter",
+    "players": [
+      "Peter",
+      "Richard Pham"
+    ],
+    "heights": {
+      "Peter": 1.83,
+      "Richard Pham": 1.79
+    },
+    "strokes": true,
+    "videos": {
+      "rally": [
+        "data/raw/demo/rally_peter_richard.mp4",
+        "Practice vs Richard Pham",
+        0,
+        23
+      ]
+    },
+    "gpu": {
+      "batch": 4
+    }
+  }
+}

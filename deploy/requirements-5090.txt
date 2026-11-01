@@ -1,0 +1,14 @@
+# Uses the already verified torch 2.8.0+cu128 / torchvision 0.23.0+cu128 base.
+# Install in the project overlay venv, never in the shared base environment.
+rfdetr==1.10.1
+rtmlib==0.0.16
+supervision==0.30.3
+transformers==5.17.0
+onnxruntime-gpu==1.23.2
+timm==0.6.13
+tabulate==0.9.0
+jsonschema>=4.23
+pytest>=8
+yt-dlp==2026.8.19
+# Permutation-invariant comparison of independent MoSeq state sequences.
+scikit-learn==1.7.2

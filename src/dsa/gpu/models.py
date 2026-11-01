@@ -16,7 +16,7 @@ import sys
 import cv2
 import numpy as np
 
-from dsa.paths import TCD, TCD_WEIGHTS, WASB
+from dsa.paths import MODELS, TCD, TCD_WEIGHTS, WASB
 
 KP = list(range(23)) + list(range(91, 133))
 RTMW_URL = ("https://download.openmmlab.com/mmpose/v1/projects/rtmw/onnx_sdk/"
@@ -111,7 +111,15 @@ class Pose:
         import torch  # noqa: F401  (loads the CUDA libraries onnxruntime's CUDA provider needs; without, it runs on the CPU)
         from rtmlib import RTMPose
 
-        self.m = RTMPose(RTMW_URL, model_input_size=(288, 384), backend="onnxruntime", device=device)
+        if device == "cuda":
+            import onnxruntime as ort
+
+            ort.preload_dlls()
+        local_model = MODELS / "rtmw/rtmw.onnx"
+        self.m = RTMPose(str(local_model) if local_model.is_file() else RTMW_URL,
+                         model_input_size=(288, 384), backend="onnxruntime", device=device)
+        if device == "cuda" and "CUDAExecutionProvider" not in self.m.session.get_providers():
+            raise RuntimeError("RTMW could not activate CUDA; check onnxruntime-gpu and its CUDA/cuDNN libraries")
         if fp16:            # 1.6x the crops per second on a 3090 Ti; converted once, kept beside the fp32 file
             from pathlib import Path
 

@@ -10,7 +10,7 @@ listed player (dsa.ingest.projects) is always blue.
           <video>/points/<first frame>.mp4; the candidates in points/points.json, the pairs in pairs.json.
           Nobody changes ends during a point, so each end keeps the player it has most often (step 3 mixes
           them up for a few frames now and then). Who that player is comes from the TV scoreboard's serve
-          marker just before the serve, read by Opus, and the serving end; with no marker (old broadcasts),
+          marker just before the serve, read by Codex, and the serving end; with no marker (old broadcasts),
           from step 4's names.json.
   export  every level's pairs, copied to <site>/clips/, with <site>/manifest.json.
 
@@ -29,7 +29,7 @@ import cv2
 import numpy as np
 
 from dsa.ingest.projects import PROJECTS
-from dsa.opus import ask
+from dsa.codex import ask
 from dsa.pages import render
 from dsa.paths import video_dir
 from dsa.scene import results

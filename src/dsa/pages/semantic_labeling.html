@@ -1,0 +1,187 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>__TITLE__</title><style>
+*{box-sizing:border-box}body{margin:0;background:#f3f5f7;color:#192b3b;font:16px/1.6 system-ui,sans-serif}
+main{max-width:1250px;margin:auto;padding:24px}h1{font-size:27px;margin:12px 0}h2{font-size:21px;margin:0 0 8px}p{margin:8px 0}
+a{color:#145b94}button,select,input{font:inherit;color:inherit;border:1px solid #aebdcc;border-radius:6px;background:white;padding:7px 10px}
+button{cursor:pointer}button:disabled{opacity:.45;cursor:default}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #d79222;outline-offset:2px}
+.primary{background:#145b94;color:#fff;border-color:#145b94}.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}
+.notice{background:#fff2d6;border:1px solid #e4d1a5;border-radius:8px;padding:12px 16px;margin:16px 0}.muted{color:#53667b;font-size:14px}
+.layout{display:grid;grid-template-columns:240px minmax(0,1fr);gap:18px;margin-top:18px}.tasks{display:flex;flex-direction:column;gap:7px;max-height:78vh;overflow:auto}
+.tasks button{text-align:left;padding:10px;font-size:14px}.tasks button[aria-current=true]{background:#e4f0fa;border-color:#145b94;box-shadow:inset 3px 0 #145b94}
+.panel{padding:20px;background:white;border:1px solid #d8e0e7;border-radius:10px}video{width:100%;max-height:450px;background:#101820;border-radius:7px;margin-top:10px}
+.segment{padding:13px;margin:12px 0;border:1px solid #cbd8e4;border-radius:8px}.segment.active{border:2px solid #145b94;padding:12px}
+.segment label{font-size:14px}.segment input[type=number]{width:95px}.segment select{max-width:180px}.notes{width:100%;margin-top:10px}
+.auto-note{padding:10px 12px;background:#eaf3fa;border:1px solid #c6ddeb;border-radius:7px;margin-top:12px}.timeline{display:flex;gap:3px;margin:12px 0}.timeline button{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;padding:8px 5px;background:var(--phase-bg,#eaf3fa);color:var(--phase-color,#405c6c)}.timeline button[aria-pressed=true]{box-shadow:inset 0 0 0 2px var(--phase-color,#145b94)}.badge{font-size:13px;color:#46647e}
+.phase-legend{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.phase-chip{padding:6px 10px;border-radius:6px;background:var(--phase-bg,#eef0f3);color:var(--phase-color,#405c6c);font-weight:600;border:1px solid currentColor}.phase-tag{font-size:14px;padding:3px 7px;border-radius:5px;background:var(--phase-bg,#eef0f3);color:var(--phase-color,#405c6c)}.segment,.segment.active{border-left:5px solid var(--phase-color,#aebdcc)}
+.error{color:#af3024;font-weight:600}#status{font-size:14px}progress{width:180px}details{margin-top:12px}summary{cursor:pointer}input[type=file]{max-width:280px;font-size:13px}
+.drag-timeline{display:block;position:relative;height:85px;gap:0;touch-action:none;user-select:none;border-bottom:1px solid #aebdcc;margin-top:18px}.drag-timeline .phase-block{position:absolute;top:0;height:39px;border-radius:3px;padding:4px 1px;overflow:hidden}.boundary-handle{position:absolute;top:36px;width:16px;height:38px;transform:translateX(-50%);padding:0;border:0;background:transparent;cursor:ew-resize;z-index:2;touch-action:none}.boundary-handle::before{content:'';display:block;width:5px;height:27px;background:#145b94;margin:auto;border:1px solid white;border-radius:3px}.boundary-handle:hover::before,.boundary-handle:focus::before{background:#d79222;width:8px}.boundary-control{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 0}.boundary-control input[type=range]{width:min(380px,100%);padding:0;cursor:ew-resize;accent-color:#145b94}.boundary-control output{font-size:14px;font-variant-numeric:tabular-nums}.connect-tools{margin:10px 0;padding:10px;background:#eaf3fa;border-radius:6px}
+@media(max-width:750px){main{padding:14px}.layout{grid-template-columns:1fr}.tasks{flex-direction:row;max-height:none;overflow:auto}.tasks button{min-width:160px}.panel{padding:12px}.segment select{max-width:150px}}
+</style></head><body><main>
+<div class="row between"><a id="report-link" href="../semantic-pilot/">← 分类试验报告</a><a id="switch"></a></div>
+<h1>__TITLE__</h1><p id="intro"></p>
+<div class="row between"><div class="row"><strong id="progress"></strong><progress id="bar" value="0"></progress><button id="next-unreviewed" hidden>下一段未确认视频</button></div>
+<div class="row"><button id="export" class="primary">导出标签与进度</button><label>恢复导出文件 <input id="import" type="file" accept=".json,application/json"></label></div></div>
+<p id="status" role="status" aria-live="polite"></p><div class="notice" id="notice"></div>
+<div id="phase-legend" class="phase-legend" aria-label="五阶段划分标准"></div><p class="muted">按动作顺序标识：准备 → 引拍 → 挥拍 → 随挥 → 回位/移动。局部片段只标实际出现的阶段；“无法判断”和“混合/需调整区间”是核对状态。</p>
+<details><summary>标签与操作说明</summary><p>先播放视频。一个区间只标一个阶段；跨阶段时暂停到边界，点“在当前帧拆分”。可先用0.5倍速观看，再用逐帧按钮微调。时间以25fps对齐，终点不包含该帧。</p>
+<p>准备：等待和持拍准备；引拍：向后带拍、转体蓄势；挥拍：向前加速挥动；随挥：挥动后的延续收拍；回位/移动：调整站位或恢复。动作边界拿不准时选“无法判断”或“混合/需调整区间”。不要强行把所有片段标为挥拍。</p>
+<p>击球类型可以参考相邻画面；没有足够证据时选“无法判断”。模型没有覆盖的动作也可如实选择。本页不会自动确认任何新增标签。</p>
+<p>本页自动保存到当前浏览器；导出JSON可备份或换浏览器恢复。完成后把导出的文件交回当前聊天，继续检查、训练或评估。</p></details>
+<div class="layout"><nav id="tasks" class="tasks" aria-label="标注任务"></nav><section class="panel" id="panel"></section></div>
+</main><script>/*__TIMELINE__*/</script><script id="queue" type="application/json">__QUEUE__</script><script id="auto-suggestions" type="application/json">__AUTO__</script><script>
+'use strict';
+const q=JSON.parse(document.getElementById('queue').textContent),key=(q.storage_prefix||'camera05-round2-')+q.queue_id;
+const $=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const auto=JSON.parse(document.getElementById('auto-suggestions').textContent);
+const phaseSchema=q.phase_schema||{version:'tennis-five-phase-v1',phases:['准备','引拍','挥拍','随挥','回位/移动'],review_states:['无法判断','混合/需调整区间'],definitions:[]};
+const phases=phaseSchema.phases,phaseStates=phaseSchema.review_states,minFrames=q.minimum_segment_frames||4;
+const phaseStyle=phase=>{const d=phaseSchema.definitions.find(d=>d.label===phase);return d?`--phase-bg:${d.background};--phase-color:${d.color}`:''};
+const unknown=['无法判断','混合/需调整区间','无效动作',''];let state=q.initial_progress?JSON.parse(JSON.stringify(q.initial_progress)):{active:0,tasks:{}};
+try{const saved=localStorage.getItem(key);if(saved)state=JSON.parse(saved)}catch(e){$('#status').textContent='浏览器进度未能读取，请导入备份。'}
+for(const t of q.tasks)if(!state.tasks[t.id])state.tasks[t.id]={done:false,segments:[{start_frame:t.start_frame,end_frame_exclusive:t.end_frame_exclusive,shot_type:t.initial_shot_type||'',phase:'',notes:''}]};
+const clone=v=>JSON.parse(JSON.stringify(v));
+function pristine(t,d){const s=d.segments[0];return !d.done&&!d.manual_edit&&!d.auto_opt_out&&!d.auto_revision&&d.segments.length===1&&s.start_frame===t.start_frame&&s.end_frame_exclusive===t.end_frame_exclusive&&s.shot_type===(t.initial_shot_type||'')&&!s.phase&&!s.notes}
+function applySuggestion(t,keepBackup=false){const d=state.tasks[t.id],proposal=auto.tasks?.[t.id];if(!proposal)return;if(!keepBackup)d.auto_backup={done:d.done,segments:clone(d.segments),manual_edit:Boolean(d.manual_edit),auto_opt_out:Boolean(d.auto_opt_out)};d.segments=clone(proposal.segments);d.done=false;d.manual_edit=false;d.auto_opt_out=false;d.auto_revision=auto.revision;}
+for(const t of q.tasks){const d=state.tasks[t.id];if(auto.queue_id!==q.queue_id||!auto.tasks?.[t.id])continue;if(pristine(t,d))applySuggestion(t);else if(d.auto_revision&&d.auto_revision!==auto.revision&&!d.done&&!d.manual_edit&&!d.auto_opt_out)applySuggestion(t,true);}
+const requestedClip=new URLSearchParams(location.search).get('clip');
+if(q.pose_edit&&requestedClip){const i=q.tasks.findIndex(t=>t.clip_id===requestedClip);if(i>=0)state.active=i;}
+state.active=Math.max(0,Math.min(q.tasks.length-1,Number(state.active)||0));
+let selected=0,stopAt=null,video=null,boundaryDrag=null;
+const current=()=>q.tasks[state.active],draft=()=>state.tasks[current().id];
+const status=(text,error=false)=>{$('#status').textContent=text;$('#status').className=error?'error':''};
+function validate(t,d){
+ if(!d.segments.length)return '至少保留一个区间。';
+ const sorted=[...d.segments].sort((a,b)=>a.start_frame-b.start_frame);
+ for(let i=0;i<sorted.length;i++){
+  const s=sorted[i];if(!Number.isInteger(s.start_frame)||!Number.isInteger(s.end_frame_exclusive)||s.start_frame<t.allowed_start_frame||s.end_frame_exclusive>t.allowed_end_frame||s.end_frame_exclusive-s.start_frame<minFrames)return `每段至少${minFrames}帧（${(minFrames/q.fps).toFixed(2)}秒），且在允许范围内。`;
+  if((!q.phase_only&&!q.shot_type_labels.includes(s.shot_type))||![...phases,...phaseStates].includes(s.phase))return q.phase_only?'请标识所有区间的阶段；无效或拿不准的部分也需明确选择。':'请为每个区间选择击球类型和五阶段标签；拿不准时选“无法判断”。';
+  if(i&&s.start_frame<sorted[i-1].end_frame_exclusive)return '区间发生重叠，请调整起止时间。';
+ }
+ if(t.kind==='mixed'||q.mode==='validation'||q.require_full_coverage){
+  if(sorted[0].start_frame!==t.allowed_start_frame||sorted.at(-1).end_frame_exclusive!==t.allowed_end_frame||sorted.some((s,i)=>i&&s.start_frame!==sorted[i-1].end_frame_exclusive))return '请连续覆盖本项原区间，未知部分可保留并标“无法判断”。';
+ }
+ return '';
+}
+function progress(){
+ const n=q.tasks.filter(t=>state.tasks[t.id].done&&!validate(t,state.tasks[t.id])).length;
+ $('#progress').textContent=`已确认 ${n} / ${q.tasks.length}${q.full_clip?' 段视频':''}`;$('#bar').max=q.tasks.length;$('#bar').value=n;
+ [...$('#tasks').children].forEach((b,i)=>{const t=q.tasks[i];b.setAttribute('aria-current',String(i===state.active));b.textContent=`${state.tasks[t.id].done?'✓ ':'○ '}${i+1}. ${t.clip_id} · ${t.kind==='full_clip'?'完整视频':t.kind==='mixed'?'拆分混合区间':t.kind==='validation'?'完整验证视频':'补充样本'}`});
+}
+function persist(){try{localStorage.setItem(key,JSON.stringify(state))}catch(e){status('浏览器无法保存，请及时导出标签文件。',true)}progress()}
+function changed(keepConnectionUndo=false){draft().done=false;draft().manual_edit=true;if(!keepConnectionUndo)delete draft().continuity_backup;persist();$('#done-status').textContent='本项待确认';}
+function setBoundary(i,field,value){const rows=draft().segments,s=rows[i],old=s[field];s[field]=value;if(field==='end_frame_exclusive'&&rows[i+1]?.start_frame===old)rows[i+1].start_frame=value;if(field==='start_frame'&&rows[i-1]?.end_frame_exclusive===old)rows[i-1].end_frame_exclusive=value;}
+function options(labels,value){return '<option value="">请选择</option>'+labels.map(x=>`<option value="${esc(x)}"${x===value?' selected':''}>${esc(x)}</option>`).join('')}
+function phaseOptions(value){const rows=labels=>labels.map(x=>`<option value="${esc(x)}"${x===value?' selected':''}>${esc(x)}</option>`).join('');return '<option value="">请选择阶段</option><optgroup label="五个动作阶段">'+rows(phases)+'</optgroup><optgroup label="待核对状态">'+rows(phaseStates)+'</optgroup>'+(![...phases,...phaseStates,''].includes(value)?`<option selected value="${esc(value)}">旧标签：${esc(value)}（需复核）</option>`:'')}
+function boundaryControl(i,title){const rows=draft().segments,left=rows[i],right=rows[i+1];if(!left||!right||left.end_frame_exclusive!==right.start_frame)return '';return `<label class="boundary-control">${title}<input type="range" aria-label="边界${i+1}滑动调节" data-boundary-range="${i}" min="${left.start_frame+minFrames}" max="${right.end_frame_exclusive-minFrames}" step="1" value="${left.end_frame_exclusive}"><output data-boundary-output="${i}">${(left.end_frame_exclusive/q.fps).toFixed(2)}秒 · 第${left.end_frame_exclusive}帧</output></label>`;}
+function previewBoundary(i,frame){
+ const rows=draft().segments;if(!PhaseTimeline.moveBoundary(rows,i,frame,minFrames))return false;
+ video.pause();stopAt=null;video.currentTime=rows[i].end_frame_exclusive/q.fps;
+ const t=current(),total=t.allowed_end_frame-t.allowed_start_frame;
+ for(const b of $('#timeline').querySelectorAll('.phase-block')){const s=rows[Number(b.dataset.index)];b.style.left=(s.start_frame-t.allowed_start_frame)*100/total+'%';b.style.width=(s.end_frame_exclusive-s.start_frame)*100/total+'%';}
+ for(const h of $('#timeline').querySelectorAll('[data-boundary]')){const j=Number(h.dataset.boundary),f=rows[j].end_frame_exclusive;h.style.left=(f-t.allowed_start_frame)*100/total+'%';h.setAttribute('aria-valuenow',f);h.setAttribute('aria-valuemin',rows[j].start_frame+minFrames);h.setAttribute('aria-valuemax',rows[j+1].end_frame_exclusive-minFrames);h.setAttribute('aria-valuetext',`${(f/q.fps).toFixed(2)}秒，第${f}帧`);}
+ for(const input of $('#segments').querySelectorAll('input[data-boundary-range]')){const j=Number(input.dataset.boundaryRange);input.min=rows[j].start_frame+minFrames;input.max=rows[j+1].end_frame_exclusive-minFrames;input.value=rows[j].end_frame_exclusive;}
+ for(const out of $('#segments').querySelectorAll('[data-boundary-output]')){const f=rows[Number(out.dataset.boundaryOutput)].end_frame_exclusive;out.textContent=`${(f/q.fps).toFixed(2)}秒 · 第${f}帧`;}
+ for(const input of $('#segments').querySelectorAll('input[data-field=start_frame],input[data-field=end_frame_exclusive]'))input.value=(rows[Number(input.dataset.index)][input.dataset.field]/q.fps).toFixed(2);
+ return true;
+}
+function finishBoundary(){changed();renderRows();status('边界已按帧保存；相邻阶段首尾同步衔接，请核对后确认整段。');}
+function bindDraggableTimeline(){
+ const bar=$('#timeline');
+ bar.onpointerdown=e=>{const h=e.target.closest('[data-boundary]');if(!h||e.button!==0)return;e.preventDefault();const i=Number(h.dataset.boundary);boundaryDrag={i,pointer:e.pointerId,handle:h,original:draft().segments[i].end_frame_exclusive,moved:false};selected=i;h.setPointerCapture(e.pointerId);video.pause();stopAt=null;};
+ bar.onpointermove=e=>{if(!boundaryDrag||boundaryDrag.pointer!==e.pointerId)return;const box=bar.getBoundingClientRect(),t=current(),f=t.allowed_start_frame+(e.clientX-box.left)/box.width*(t.allowed_end_frame-t.allowed_start_frame);if(previewBoundary(boundaryDrag.i,f))boundaryDrag.moved=true;};
+ bar.onpointerup=e=>{if(!boundaryDrag||boundaryDrag.pointer!==e.pointerId)return;const d=boundaryDrag;boundaryDrag=null;if(d.handle.hasPointerCapture(e.pointerId))d.handle.releasePointerCapture(e.pointerId);if(d.moved)finishBoundary();else renderRows();};
+ bar.onpointercancel=()=>{if(!boundaryDrag)return;const d=boundaryDrag;boundaryDrag=null;previewBoundary(d.i,d.original);renderRows();};
+ bar.onkeydown=e=>{const h=e.target.closest('[data-boundary]');if(!h)return;const i=Number(h.dataset.boundary),left=draft().segments[i],right=draft().segments[i+1];let f=left.end_frame_exclusive;if(e.key==='ArrowLeft')f-=e.shiftKey?5:1;else if(e.key==='ArrowRight')f+=e.shiftKey?5:1;else if(e.key==='Home')f=left.start_frame+minFrames;else if(e.key==='End')f=right.end_frame_exclusive-minFrames;else return;e.preventDefault();if(previewBoundary(i,f)){selected=i;finishBoundary();$('#timeline').querySelector(`[data-boundary="${i}"]`).focus();}};
+}
+function renderRows(){
+ const d=draft();selected=Math.max(0,Math.min(selected,d.segments.length-1));
+ if($('#segment-picker'))$('#segment-picker').innerHTML=d.segments.map((s,i)=>`<option value="${i}"${i===selected?' selected':''}>区间 ${i+1} / ${d.segments.length} · ${(s.start_frame/q.fps).toFixed(2)}–${(s.end_frame_exclusive/q.fps).toFixed(2)}秒 · ${esc(s.phase||'待标')}</option>`).join('');
+ const covered=phases.filter(p=>d.segments.some(s=>s.phase===p));$('#phase-coverage').textContent='本项已标阶段：'+(covered.join('、')||'暂无')+(d.segments.some(s=>!phases.includes(s.phase))?'；另有未标或非单阶段区间。':'。');
+ $('#timeline').innerHTML=d.segments.map((s,i)=>`<button data-index="${i}" aria-pressed="${i===selected}" style="flex:${Math.max(1,s.end_frame_exclusive-s.start_frame)};${phaseStyle(s.phase)}" title="${(s.start_frame/q.fps).toFixed(2)}–${(s.end_frame_exclusive/q.fps).toFixed(2)}秒">${esc(s.phase||'待标')}</button>`).join('');
+ if(q.pose_edit){const t=current(),total=t.allowed_end_frame-t.allowed_start_frame;$('#timeline').className='timeline drag-timeline';$('#timeline').innerHTML=d.segments.map((s,i)=>`<button class="phase-block" data-index="${i}" aria-pressed="${i===selected}" style="left:${(s.start_frame-t.allowed_start_frame)*100/total}%;width:${(s.end_frame_exclusive-s.start_frame)*100/total}%;${phaseStyle(s.phase)}" title="${(s.start_frame/q.fps).toFixed(2)}–${(s.end_frame_exclusive/q.fps).toFixed(2)}秒 · ${esc(s.phase)}">${esc(s.phase||'待标')}</button>`).join('')+d.segments.slice(0,-1).map((s,i)=>`<button class="boundary-handle" type="button" role="slider" data-boundary="${i}" aria-label="阶段边界${i+1}：${esc(s.phase)}与${esc(d.segments[i+1].phase)}" aria-orientation="horizontal" aria-valuemin="${s.start_frame+minFrames}" aria-valuemax="${d.segments[i+1].end_frame_exclusive-minFrames}" aria-valuenow="${s.end_frame_exclusive}" aria-valuetext="${(s.end_frame_exclusive/q.fps).toFixed(2)}秒，第${s.end_frame_exclusive}帧" style="left:${(s.end_frame_exclusive-t.allowed_start_frame)*100/total}%"></button>`).join('');}
+ $('#segments').innerHTML=d.segments.map((s,i)=>`<div class="segment${i===selected?' active':''}" data-index="${i}"${q.pose_edit&&i!==selected?' hidden':''} style="${phaseStyle(s.phase)}">
+ <div class="row between"><strong>区间 ${i+1} <span class="phase-tag" style="${phaseStyle(s.phase)}">${phases.includes(s.phase)?(phases.indexOf(s.phase)+1)+'. ':''}${esc(s.phase||'待标')}</span> ${d.done?'<span class="badge">· 已人工确认</span>':s.auto_suggested?'<span class="badge">· 自动建议，待确认</span>':q.full_clip&&s.seed_origin&&s.seed_origin!=='unlabeled'?'<span class="badge">· 历史标签/边界草稿，待整段核对</span>':''}</strong><div class="row"><button data-action="select" data-index="${i}">选择此段</button><button data-action="play" data-index="${i}">播放此段</button><button data-action="merge" data-index="${i}"${i===d.segments.length-1?' disabled':''}>合并下一段</button><button data-action="delete" data-index="${i}"${d.segments.length===1?' disabled':''}>删除</button></div></div>
+ <div class="row"><label>起点（秒） <input aria-label="区间${i+1}起点秒" type="number" step="0.04" data-field="start_frame" data-index="${i}" value="${(s.start_frame/q.fps).toFixed(2)}"></label>
+ <label>终点（不含） <input aria-label="区间${i+1}终点秒" type="number" step="0.04" data-field="end_frame_exclusive" data-index="${i}" value="${(s.end_frame_exclusive/q.fps).toFixed(2)}"></label>
+ <button data-action="start" data-index="${i}">当前帧设为起点</button><button data-action="end" data-index="${i}">当前帧设为终点</button></div>
+ ${i<d.segments.length-1?`<div class="row"><span class="muted">与下一段的边界</span><button data-action="boundary-back" data-index="${i}" aria-label="区间${i+1}结束边界前移一帧">← 1帧</button><button data-action="boundary-next" data-index="${i}" aria-label="区间${i+1}结束边界后移一帧">1帧 →</button></div>`:''}
+ ${q.pose_edit?boundaryControl(i-1,'滑动起点边界')+boundaryControl(i,'滑动终点边界'):''}
+ <div class="row">${q.phase_only?'':`<label>击球类型 <select aria-label="区间${i+1}击球类型" data-field="shot_type" data-index="${i}">${options(q.shot_type_labels,s.shot_type)}</select></label>`}
+ <label>动作阶段 <select aria-label="区间${i+1}动作阶段" data-field="phase" data-index="${i}">${phaseOptions(s.phase)}</select></label></div>
+ ${q.stroke_types?`<div class="row"><label>本次击球类型 <select aria-label="区间${i+1}击球类型分类" data-field="stroke_type" data-index="${i}">${options(q.stroke_types,s.stroke_type||'无法判断')}</select></label><button data-action="stroke-cycle" data-index="${i}"${!['引拍','挥拍','随挥'].includes(s.phase)?' disabled':''}>应用到本次引拍—随挥</button></div><p class="muted">同一视频可包含多次不同击球。准备、回位可不选类型；反手请区分单手或双手，拿不准选“无法判断”。</p>`:''}
+ <input class="notes" aria-label="区间${i+1}备注" placeholder="备注（可留空）" data-field="notes" data-index="${i}" value="${esc(s.notes)}"></div>`).join('');
+ $('#done-status').textContent=d.done?'本项已确认；修改后需重新确认':'本项待确认';
+ if($('#auto-status'))$('#auto-status').textContent=d.done?'本项已由你确认；继续修改会重新转为待确认。':d.auto_revision?(d.manual_edit?'已微调自动建议；请检查后确认。':`已自动拆为${d.segments.length}段，边界和标签均待你确认。`):'已保留当前手工草稿，可按需采用自动建议。';
+ if($('#undo-auto'))$('#undo-auto').disabled=!d.auto_backup;
+ if($('#undo-connect'))$('#undo-connect').disabled=!d.continuity_backup;
+}
+async function play(a,b){
+ stopAt=b;try{if(video.readyState===0){video.load();await new Promise((resolve,reject)=>{video.addEventListener('loadedmetadata',resolve,{once:true});video.addEventListener('error',reject,{once:true})})}video.currentTime=a;await video.play()}catch(e){status('视频未能播放，请刷新页面后重试。标注进度已保留。',true)}
+}
+function render(){
+ if(video)video.pause();selected=0;stopAt=null;boundaryDrag=null;const t=current();
+ $('#panel').innerHTML=`<h2>${state.active+1} / ${q.tasks.length} · ${esc(t.title)} · ${esc(t.clip_id)}</h2><p>${esc(t.instruction)}</p>
+ <p class="muted">本项允许范围 ${(t.allowed_start_frame/q.fps).toFixed(2)}–${(t.allowed_end_frame/q.fps).toFixed(2)}秒；初始候选 ${(t.start_frame/q.fps).toFixed(2)}–${(t.end_frame_exclusive/q.fps).toFixed(2)}秒。</p>
+ <video controls preload="metadata" playsinline src="${esc(t.video)}"></video>
+ ${q.full_clip?`<details id="raw-reference"><summary>查看MoSeq原状态边界（仅供参考）</summary><p class="muted">原状态可能跨越多个阶段；下方按钮只定位视频，不给区间自动赋阶段名称。</p><div id="raw-runs" class="row">${(q.raw_state_references[t.clip_id]||[]).map((r,i)=>`<button data-raw-run="${i}">S${r.state} · ${(r.start_frame/q.fps).toFixed(2)}–${(r.end_frame_exclusive/q.fps).toFixed(2)}秒</button>`).join('')}</div></details>`:''}
+ <div class="row"><button id="context">播放当前区间及上下文</button><button id="whole">从头播放</button><label>速度 <select id="speed" aria-label="播放速度"><option value="1">1倍</option><option value="0.5">0.5倍</option><option value="0.25">0.25倍</option></select></label></div>
+ <div class="row"><button id="back-frame">← 前一帧</button><button id="next-frame">后一帧 →</button><span id="time" class="muted">0.00秒 / 第0帧</span><button id="split" class="primary">在当前帧拆分所选区间</button></div>
+ ${auto.tasks?.[t.id]?`<div class="auto-note"><strong>自动预分段</strong><p id="auto-status"></p><p class="muted">${esc(auto.tasks[t.id].source)}。请结合画面微调；建议不会自动变成人工确认标签。</p><div class="row"><button id="apply-auto">${q.stroke_types?'载入本轮新建议':'采用本项自动建议'}</button><button id="undo-auto">恢复自动分段前</button></div></div>`:''}
+ ${q.pose_edit?'<div class="connect-tools"><div class="row"><button id="connect-stages">衔接引拍→挥拍→随挥</button><button id="undo-connect">撤销衔接</button></div><p class="muted">拖动色条下方蓝色边界柄，或使用区间内滑动条；两侧首尾同步，自动对齐到帧。一键衔接只填补这些阶段之间不超过0.4秒的未知小间隔，无效动作与长停顿保留。</p></div><p><label>选择要微调的区间 <select id="segment-picker" aria-label="选择要微调的区间"></select></label></p>':''}<p id="phase-coverage" class="muted"></p><div id="timeline" class="timeline" aria-label="区间阶段时间线"></div><div id="segments"></div><div class="row"><button id="add">添加一个区间</button><button id="confirm" class="primary">${q.full_clip?'确认整段视频标注':'确认本项标注'}</button><strong id="done-status"></strong></div>
+ <p id="task-error" class="error" role="alert"></p><div class="row between"><button id="prev"${state.active===0?' disabled':''}>← 上一项</button><button id="next"${state.active===q.tasks.length-1?' disabled':''}>下一项 →</button></div>`;
+ video=$('#panel video');const player=video;player.addEventListener('loadedmetadata',()=>{if(player===video)player.currentTime=t.start_frame/q.fps});player.addEventListener('timeupdate',()=>{if(player!==video)return;$('#time').textContent=`${player.currentTime.toFixed(2)}秒 / 第${Math.round(player.currentTime*q.fps)}帧`;if(stopAt!==null&&player.currentTime>=stopAt){player.pause();stopAt=null}});
+ $('#speed').onchange=()=>{video.playbackRate=Number($('#speed').value)};
+ $('#context').onclick=()=>{const s=draft().segments[selected];play(Math.max(0,s.start_frame/q.fps-.6),Math.min(t.clip_frames/q.fps,s.end_frame_exclusive/q.fps+.6))};
+ $('#whole').onclick=()=>play(0,null);
+ if($('#raw-runs'))$('#raw-runs').onclick=e=>{const b=e.target.closest('[data-raw-run]');if(!b)return;const r=q.raw_state_references[t.clip_id][Number(b.dataset.rawRun)];video.pause();stopAt=null;video.currentTime=r.start_frame/q.fps;};
+ $('#timeline').onclick=e=>{const b=e.target.closest('button[data-index]');if(!b)return;selected=Number(b.dataset.index);video.pause();stopAt=null;video.currentTime=draft().segments[selected].start_frame/q.fps;renderRows()};
+ if(q.pose_edit){bindDraggableTimeline();$('#connect-stages').onclick=()=>{const d=draft(),result=PhaseTimeline.connectStages(d.segments,Math.round(.4*q.fps));if(!result.joined){status('没有可衔接的短间隔；可直接拖动阶段边界。');return;}d.continuity_backup={segments:clone(d.segments),done:d.done,manual_edit:Boolean(d.manual_edit)};d.segments=result.segments;selected=Math.max(0,d.segments.findIndex(s=>s.phase==='引拍'));changed(true);renderRows();status(`已衔接${result.joined}处，填入${result.filledFrames}帧短间隔；请拖动边界微调后确认。`);};$('#undo-connect').onclick=()=>{const d=draft(),backup=d.continuity_backup;if(!backup)return;d.segments=clone(backup.segments);d.done=backup.done;d.manual_edit=backup.manual_edit;delete d.continuity_backup;selected=0;persist();renderRows();status('已恢复衔接前的区间与确认状态。');};}
+ if($('#segment-picker'))$('#segment-picker').onchange=()=>{selected=Number($('#segment-picker').value);video.pause();stopAt=null;video.currentTime=draft().segments[selected].start_frame/q.fps;renderRows()};
+ if($('#apply-auto'))$('#apply-auto').onclick=()=>{applySuggestion(t);selected=0;persist();renderRows();status('已采用自动建议，仍需你确认。')};
+ if($('#undo-auto'))$('#undo-auto').onclick=()=>{const backup=draft().auto_backup;if(!backup)return;state.tasks[t.id]={...clone(backup),auto_opt_out:true};selected=0;persist();renderRows();status('已恢复自动分段前的内容。')};
+ for(const [id,delta] of [['back-frame',-1],['next-frame',1]])$('#'+id).onclick=()=>{video.pause();stopAt=null;video.currentTime=Math.max(0,Math.min((t.clip_frames-1)/q.fps,(Math.round(video.currentTime*q.fps)+delta)/q.fps))};
+ $('#split').onclick=()=>{const d=draft(),s=d.segments[selected],f=Math.round(video.currentTime*q.fps);if(f-s.start_frame<minFrames||s.end_frame_exclusive-f<minFrames){$('#task-error').textContent=`拆分点两侧各需至少${minFrames}帧；先播放或定位到区间内的阶段边界。`;return}d.segments.splice(selected,1,{...s,end_frame_exclusive:f,phase:''},{...s,start_frame:f,phase:''});changed();$('#task-error').textContent='已拆分，请分别选择阶段标签。';renderRows()};
+ $('#segments').onchange=e=>{if(e.target.dataset.boundaryRange!==undefined){const i=Number(e.target.dataset.boundaryRange);previewBoundary(i,Number(e.target.value));finishBoundary();$('#segments').querySelector(`[data-boundary-range="${i}"]`)?.focus();return;}const f=e.target.dataset.field,i=Number(e.target.dataset.index);if(!f)return;if(['start_frame','end_frame_exclusive'].includes(f))setBoundary(i,f,e.target.value===''?null:Math.round(Number(e.target.value)*q.fps));else draft().segments[i][f]=e.target.value;if(f==='stroke_type'){draft().segments[i].stroke_type_reviewed=true;draft().segments[i].stroke_type_source='human_interval_selection';}selected=i;changed();renderRows()};
+ $('#segments').oninput=e=>{if(e.target.dataset.boundaryRange!==undefined)previewBoundary(Number(e.target.dataset.boundaryRange),Number(e.target.value));else if(e.target.dataset.field==='notes'){draft().segments[Number(e.target.dataset.index)].notes=e.target.value;changed()}};
+ $('#segments').onclick=e=>{const b=e.target.closest('button[data-action]');if(!b)return;const i=Number(b.dataset.index),action=b.dataset.action,d=draft(),s=d.segments[i];selected=i;if(action==='play'){play(s.start_frame/q.fps,s.end_frame_exclusive/q.fps)}else if(action==='delete'){d.segments.splice(i,1);changed()}else if(action==='merge'){const next=d.segments[i+1];s.end_frame_exclusive=next.end_frame_exclusive;if(s.phase!==next.phase)s.phase='混合/需调整区间';if(s.shot_type!==next.shot_type)s.shot_type='无法判断';if(s.stroke_type!==next.stroke_type){s.stroke_type='无法判断';s.stroke_type_reviewed=false;}s.notes=[s.notes,next.notes].filter(Boolean).join('；');d.segments.splice(i+1,1);changed()}else if(action==='start'||action==='end'){setBoundary(i,action==='start'?'start_frame':'end_frame_exclusive',Math.round(video.currentTime*q.fps));changed()}else if(action==='boundary-back'||action==='boundary-next'){const next=d.segments[i+1],f=s.end_frame_exclusive+(action==='boundary-back'?-1:1);if(f-s.start_frame<minFrames||next.end_frame_exclusive-f<minFrames){$('#task-error').textContent=`相邻两段都需至少${minFrames}帧；可以先合并再调整。`;return}setBoundary(i,'end_frame_exclusive',f);video.pause();stopAt=null;video.currentTime=f/q.fps;changed()}renderRows()};
+ $('#add').onclick=()=>{const d=draft(),a=d.segments.at(-1).end_frame_exclusive;if(a>=t.allowed_end_frame){$('#task-error').textContent='已到允许区间末尾；可以拆分现有区间，或先调整上一段终点。';return}d.segments.push({start_frame:a,end_frame_exclusive:Math.min(a+12,t.allowed_end_frame),shot_type:'',phase:'',notes:''});selected=d.segments.length-1;changed();renderRows()};
+ if(q.stroke_types)$('#segments').addEventListener('click',e=>{const b=e.target.closest('[data-action=stroke-cycle]');if(!b)return;const i=Number(b.dataset.index),d=draft(),range=PhaseTimeline.strokeCycle(d.segments,i);if(!range)return;const type=d.segments[i].stroke_type||'无法判断';for(let j=range.start;j<=range.end;j++){d.segments[j].stroke_type=type;d.segments[j].stroke_type_reviewed=true;d.segments[j].stroke_type_source='human_cycle_selection';}changed();renderRows();status(`已将${type}应用到本次击球的${range.end-range.start+1}个连续阶段。`);});
+ $('#confirm').onclick=()=>{const error=validate(t,draft());$('#task-error').textContent=error;if(error)return;draft().segments.sort((a,b)=>a.start_frame-b.start_frame);draft().done=true;persist();renderRows();status(`第${state.active+1}项已确认并保存，可以继续下一项。`)};
+ $('#prev').onclick=()=>activate(state.active-1);$('#next').onclick=()=>activate(state.active+1);renderRows();progress();
+}
+function activate(i){if(i<0||i>=q.tasks.length)return;state.active=i;persist();render()}
+function payload(){
+ const completed=q.tasks.filter(t=>state.tasks[t.id].done&&!validate(t,state.tasks[t.id]));
+ const replaced=new Set(completed.map(t=>t.replaces_candidate_id).filter(Boolean));
+ const records=q.baseline_records.filter(r=>!replaced.has(r.id)).map(r=>({...r}));
+ for(const t of completed)for(const [i,s] of state.tasks[t.id].segments.entries())records.push({
+  id:t.id+'--'+String(i+1).padStart(2,'0'),parent_candidate_id:t.id,clip_id:t.clip_id,split:t.split,
+  source_sha256:t.source_sha256,fps:q.fps,clip_frames:t.clip_frames,video:t.video,
+  start_frame:s.start_frame,end_frame_exclusive:s.end_frame_exclusive,start_seconds:s.start_frame/q.fps,end_seconds:s.end_frame_exclusive/q.fps,
+  shot_type:s.shot_type||'无法判断',phase:q.full_clip&&!phases.includes(s.phase)?null:s.phase,notes:s.notes,reviewed:true,review_status:'human_reviewed',
+  ...(q.full_clip?{annotation_type:phases.includes(s.phase)?'single':s.phase==='无效动作'?'invalid':s.phase==='混合/需调整区间'?'mixed':'uncertain',excluded:s.phase==='无效动作',annotation_label:s.phase,normalized_video_sha256:t.normalized_video_sha256,prior_record_id:s.prior_record_id||null,continuity_sources:s.continuity_sources||null}:{}),
+  ...(q.stroke_types?{stroke_type:s.stroke_type||'无法判断',stroke_type_reviewed:Boolean(s.stroke_type_reviewed),stroke_type_usable:Boolean(s.stroke_type_reviewed)&&['引拍','挥拍','随挥'].includes(s.phase)&&q.stroke_types.includes(s.stroke_type)&&s.stroke_type!=='无法判断'}:{}),
+  ...(q.stroke_types?{stroke_type_source:s.stroke_type_source||null}:{}),
+  shot_type_usable:!unknown.includes(s.shot_type)&&(!q.full_clip||s.phase!=='无效动作'),phase_usable:phases.includes(s.phase),phase_schema_version:phaseSchema.version,annotation_batch_id:q.queue_id,
+  auto_suggestion_revision:state.tasks[t.id].auto_revision||null,
+  original_auto_suggestion:s.auto_suggested?{start_frame:s.suggested_start_frame,end_frame_exclusive:s.suggested_end_frame_exclusive,shot_type:s.suggested_shot_type,phase:s.suggested_phase,source:s.suggestion_source}:null});
+ return {schema_version:q.export_schema_version||2,annotation_mode:q.full_clip?'complete_clip_intervals':'candidate_intervals',created_at:new Date().toISOString(),manifest_sha256:q.manifest_sha256,
+  baseline_checkpoint_sha256:q.baseline_checkpoint_sha256,fps:q.fps,scope:q.export_scope||(q.mode==='training'?'training-only supplemental labels; not validation':'heldout-validation-only; do not train'),
+  queue_id:q.queue_id,candidate_registry:q.candidate_registry||null,candidate_registry_sha256:q.candidate_registry_sha256,
+  baseline_labels_sha256:q.baseline_labels_sha256,proposal_model_sha256:q.proposal_model_sha256||null,excluded_clips:q.excluded_clips||[],clip_type_confirmations:q.clip_type_confirmations||null,curation_sha256:q.curation_sha256||null,phase_schema:phaseSchema,completed_tasks:completed.map(t=>t.id),annotation_progress:state,records};
+}
+$('#export').onclick=()=>{const p=payload(),blob=new Blob([JSON.stringify(p,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=q.export_filename||(q.full_clip?'camera05-training-clip-labels.json':q.mode==='training'?'camera05-round2-training-labels.json':'camera05-round2-validation-labels.json');a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);status(`已导出${p.completed_tasks.length}${q.full_clip?'段已确认视频':'项已确认任务'}和全部草稿进度。`)};
+$('#import').onchange=async e=>{try{const f=e.target.files[0];if(!f)return;const p=JSON.parse(await f.text());if(p.queue_id!==q.queue_id||!p.annotation_progress)throw Error('文件不属于本批标注页');const s=p.annotation_progress;if(!s.tasks||q.tasks.some(t=>!s.tasks[t.id]||!Array.isArray(s.tasks[t.id].segments)||!s.tasks[t.id].segments.length))throw Error('进度结构不完整');
+ for(const t of q.tasks){if(s.tasks[t.id].done&&validate(t,s.tasks[t.id]))throw Error('已确认区间内容不合法');if(!s.tasks[t.id].auto_revision)s.tasks[t.id].auto_opt_out=true;}state=s;state.active=Math.max(0,Math.min(q.tasks.length-1,Number(state.active)||0));persist();render();status('标注进度已恢复。')}catch(error){status('无法恢复：'+error.message,true)}e.target.value=''};
+q.tasks.forEach((t,i)=>{const b=document.createElement('button');b.onclick=()=>activate(i);$('#tasks').appendChild(b)});
+$('#phase-legend').innerHTML=phases.map((p,i)=>`<span class="phase-chip" style="${phaseStyle(p)}" title="${esc(phaseSchema.definitions.find(d=>d.label===p)?.description||'')}">${i+1}. ${esc(p)}</span>`).join('');
+if(q.latest_report){$('#report-link').href=q.latest_report;$('#report-link').textContent='← 五阶段试训报告';}
+$('#switch').textContent=q.mode==='training'?'进入独立验证标注 →':'返回训练补充标注 →';$('#switch').href=q.validation_url||(q.mode==='training'?'validation.html':'index.html');
+$('#intro').textContent=q.mode==='training'?'按五阶段标准微调候选分段，逐项确认；原来已确认的标签会随导出保留。':'按五阶段标准标注3段完整留出视频。此处不显示模型预测；标注仅用于效果检查，不进入训练。';
+$('#notice').textContent=q.mode==='training'?(auto.tasks?'已自动生成候选区间与阶段建议。播放后微调起止时间，必要时拆分或合并，最后点“确认本项标注”。已修改或确认的草稿会保留，未知部分可以继续标“无法判断”。':'每项完成后点“确认本项标注”。混合区间需要连续覆盖原范围，未知部分可以保留。模型筛选的新候选尚未被人工确认，标签从空白开始。'):'这是原21段验证视频中的第一批3段。请完整分段并覆盖全片；导出的验证标签与训练文件分开保存。';
+if(q.full_clip){$('#report-link').href='../';$('#report-link').textContent='← 项目首页';$('#intro').textContent='按完整视频逐段标识五个阶段；阶段和边界由你按画面确认，MoSeq原状态只作可选参考。';$('#notice').textContent='已带入历史区间标签和手工边界，整段仍待你核对。每个区间都需选择阶段或“无效动作/无法判断”，覆盖完整视频后点击“确认整段视频标注”。支持1帧（0.04秒）边界微调；原21段验证视频单独保留。';$('#next-unreviewed').hidden=false;$('#next-unreviewed').onclick=()=>{for(let offset=1;offset<=q.tasks.length;offset++){const i=(state.active+offset)%q.tasks.length;if(!state.tasks[q.tasks[i].id].done){activate(i);return}}status('全部视频已确认。')};}
+if(q.pose_edit){$('#report-link').href='../';$('#report-link').textContent='← 返回Pose重训结果';$('#intro').textContent='新模型自动标识已填入，可直接修改阶段和边界；你已确认的视频保留原标注。';$('#notice').textContent='操作：选视频 → 衔接引拍、挥拍、随挥之间的短间隔 → 拖动时间轴蓝色边界柄或区间滑动条 → 确认整段。拖动时相邻阶段首尾同步，视频定位到边界帧。灰色“无法判断”可重新标识或保留；修改自动保存，可随时导出备份。';}
+if(q.excluded_clips?.length){$('#intro').textContent=`已从当前训练和校订队列剔除${q.excluded_clips.length}段无效视频，保留${q.tasks.length}段。其余待校订视频已按你的确认设为正手，已完成的人工校订保留。`;$('#notice').textContent='只需继续微调动作阶段和边界，正手类型已批量确认。视频动作正常不等于阶段边界已经确认；校订完成后仍需点“确认整段视频标注”。原视频保留供追溯。';}
+if(q.fully_supervised){$('#intro').textContent=`本轮${q.tasks.length}段人工标定已完整保留，并用于监督训练。`;$('#notice').textContent='可以查看或修改原人工标定；修改后重新确认并导出，供下一轮重训。这里不会自动用模型建议覆盖已确认的标签，原21段验证视频仍独立保存。';}
+persist();render();
+</script></body></html>

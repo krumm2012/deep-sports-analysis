@@ -83,7 +83,7 @@ PROJECTS = {
     "own": {
         "what": "Our own phone sessions (30 fps, 1080p), Peter against a friend each time, for how his strokes compare "
                 "with the atp_hardcourt players'. The phone sits lower and closer than a TV camera.",
-        "who": "Peter",                  # named by hand (Opus can't know him): names.json
+        "who": "Peter",                  # named by hand (Codex can't know him): names.json
         "players": ["Peter", "Richard Pham"],
         "heights": {"Peter": 1.83, "Richard Pham": 1.79},   # m, as they told us (6'0", about 5'10.5")
         "compare_with": "atp_hardcourt",     # dsa.measure.profiles: boxes against its players; a tab each on its page

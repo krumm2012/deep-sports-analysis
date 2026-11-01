@@ -1,0 +1,19 @@
+{
+  "camera05": {
+    "what": "User-supplied fixed-camera tennis drill; no full tennis court in view",
+    "strokes": false,
+    "videos": {
+      "2025_1830": [
+        "local:18.30.mp4",
+        "Single-player drill",
+        0,
+        8
+      ]
+    },
+    "gpu": {
+      "batch": 4,
+      "pose_batch": 32,
+      "pose_still": true
+    }
+  }
+}

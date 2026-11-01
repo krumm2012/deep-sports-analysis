@@ -9,7 +9,7 @@ path when it moves between them (docs/STORAGE.md).
         raw.npz                     dsa.gpu.process: people, ball, court, skeletons (raw.pass1.npz while it runs)
         strokes/                    dsa.gpu.strokes: input.mp4 (224 high), scores.npz, strokes.json; labels.json
                                     (dsa.ingest.labels: SwingVision's or by eye, read in place of strokes.json)
-        court/                      dsa.scene.court: Opus court answers (phone)
+        court/                      dsa.scene.court: Codex court answers (phone)
         players.json                dsa.scene.run
         names.json, render.mp4      dsa.scene.names, dsa.pages.render
 
@@ -19,7 +19,7 @@ DSA_DATA is set to it.
 import os
 from pathlib import Path
 
-ROOT = Path(os.environ.get("DSA_DATA", "data"))
+ROOT = Path(os.environ.get("DSA_DATA", "data")).expanduser().resolve()
 CODE, MODELS, PROJECTS = ROOT / "code", ROOT / "models", ROOT / "projects"
 WASB, TCD, F3SET = CODE / "wasb", CODE / "tennis_court_detector", CODE / "f3set"
 TCD_WEIGHTS = MODELS / "tcd/model_tennis_court_det.pt"

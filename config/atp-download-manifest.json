@@ -1,0 +1,426 @@
+{
+  "purpose": "Full YouTube source uploads for 11-pro reference reconstruction; not private phone recordings",
+  "matches": [
+    {
+      "key": "2025_richard",
+      "youtube_id": "kbBfuwNfNj8",
+      "match": "Peter vs Richard Pham, June 2025 (catalog comment; not the private 2026 session)",
+      "start_seconds": 0,
+      "seconds": 0,
+      "players": [
+        "Peter",
+        "Richard Pham"
+      ],
+      "catalog": "own_public_2025",
+      "not_same_as_screenshot_2026": true
+    },
+    {
+      "key": "2022_ao_medvedev_kyrgios",
+      "youtube_id": "hg7nlXw2IHI",
+      "match": "Australian Open 2022 second round, Medvedev vs Kyrgios",
+      "start_seconds": 0,
+      "seconds": 3600,
+      "players": [
+        "Daniil Medvedev",
+        "Nick Kyrgios"
+      ],
+      "catalog": "atp_hardcourt"
+    },
+    {
+      "key": "2022_uso_alcaraz_tiafoe",
+      "youtube_id": "monj8eP5LQM",
+      "match": "US Open 2022 semifinal, Alcaraz vs Tiafoe",
+      "start_seconds": 30,
+      "seconds": 3600,
+      "players": [
+        "Carlos Alcaraz",
+        "Frances Tiafoe"
+      ],
+      "catalog": "atp_hardcourt"
+    },
+    {
+      "key": "2024_ao_sinner_medvedev",
+      "youtube_id": "qkNLSXDAZtQ",
+      "match": "Australian Open 2024 final, Sinner vs Medvedev",
+      "start_seconds": 30,
+      "seconds": 3600,
+      "players": [
+        "Jannik Sinner",
+        "Daniil Medvedev"
+      ],
+      "catalog": "atp_hardcourt"
+    },
+    {
+      "key": "2025_ao_sinner_zverev",
+      "youtube_id": "9_3APf0X_-8",
+      "match": "Australian Open 2025 final, Sinner vs Zverev",
+      "start_seconds": 0,
+      "seconds": 3600,
+      "players": [
+        "Jannik Sinner",
+        "Alexander Zverev"
+      ],
+      "catalog": "atp_hardcourt"
+    },
+    {
+      "key": "2025_uso_sinner_alcaraz",
+      "youtube_id": "TDdEVBgDqK4",
+      "match": "US Open 2025 final, Sinner vs Alcaraz",
+      "start_seconds": 30,
+      "seconds": 3600,
+      "players": [
+        "Jannik Sinner",
+        "Carlos Alcaraz"
+      ],
+      "catalog": "atp_hardcourt"
+    },
+    {
+      "key": "2025_ao_sinner_shelton",
+      "youtube_id": "9TpapKO3bsg",
+      "match": "Australian Open 2025 semifinal, Sinner vs Shelton",
+      "start_seconds": 0,
+      "seconds": 3600,
+      "players": [
+        "Jannik Sinner",
+        "Ben Shelton"
+      ],
+      "catalog": "atp_hardcourt"
+    },
+    {
+      "key": "2024_ao_zverev_alcaraz",
+      "youtube_id": "7hxSj-2iq9M",
+      "match": "Australian Open 2024 quarterfinal, Zverev vs Alcaraz",
+      "start_seconds": 0,
+      "seconds": 3600,
+      "players": [
+        "Alexander Zverev",
+        "Carlos Alcaraz"
+      ],
+      "catalog": "atp_hardcourt"
+    },
+    {
+      "key": "2025_uso_djokovic_alcaraz",
+      "youtube_id": "duiRquc8Jjc",
+      "match": "US Open 2025 semifinal, Djokovic vs Alcaraz",
+      "start_seconds": 0,
+      "seconds": 3600,
+      "players": [
+        "Novak Djokovic",
+        "Carlos Alcaraz"
+      ],
+      "catalog": "atp_hardcourt"
+    },
+    {
+      "key": "2023_uso_djokovic_medvedev",
+      "youtube_id": "1R4qtc1H4wM",
+      "match": "US Open 2023 final, Djokovic vs Medvedev",
+      "start_seconds": 30,
+      "seconds": 3600,
+      "players": [
+        "Novak Djokovic",
+        "Daniil Medvedev"
+      ],
+      "catalog": "atp_hardcourt"
+    },
+    {
+      "key": "2023_uso_djokovic_shelton",
+      "youtube_id": "47mFjMai8H0",
+      "match": "US Open 2023 semifinal, Djokovic vs Shelton",
+      "start_seconds": 30,
+      "seconds": 3600,
+      "players": [
+        "Novak Djokovic",
+        "Ben Shelton"
+      ],
+      "catalog": "atp_hardcourt"
+    },
+    {
+      "key": "2021_ao_djokovic_zverev",
+      "youtube_id": "QVw6bS-GwgU",
+      "match": "Australian Open 2021 quarterfinal, Djokovic vs Zverev",
+      "start_seconds": 60,
+      "seconds": 3600,
+      "players": [
+        "Novak Djokovic",
+        "Alexander Zverev"
+      ],
+      "catalog": "atp_hardcourt"
+    },
+    {
+      "key": "2022_uso_kyrgios_medvedev",
+      "youtube_id": "XdKQEuP0r5o",
+      "match": "US Open 2022 fourth round, Kyrgios vs Medvedev",
+      "start_seconds": 30,
+      "seconds": 3600,
+      "players": [
+        "Nick Kyrgios",
+        "Daniil Medvedev"
+      ],
+      "catalog": "atp_hardcourt"
+    },
+    {
+      "key": "2023_uso_tiafoe_shelton",
+      "youtube_id": "qwg_pIJlNtI",
+      "match": "US Open 2023 quarterfinal, Tiafoe vs Shelton",
+      "start_seconds": 60,
+      "seconds": 3600,
+      "players": [
+        "Frances Tiafoe",
+        "Ben Shelton"
+      ],
+      "catalog": "atp_hardcourt"
+    },
+    {
+      "key": "2024_uso_tiafoe_dimitrov",
+      "youtube_id": "fBBnCKcOMK4",
+      "match": "US Open 2024 quarterfinal, Tiafoe vs Dimitrov",
+      "start_seconds": 30,
+      "seconds": 3600,
+      "players": [
+        "Frances Tiafoe",
+        "Grigor Dimitrov"
+      ],
+      "catalog": "atp_hardcourt"
+    },
+    {
+      "key": "2019_uso_medvedev_dimitrov",
+      "youtube_id": "mLGcEqse4H4",
+      "match": "US Open 2019 semifinal, Medvedev vs Dimitrov",
+      "start_seconds": 0,
+      "seconds": 3600,
+      "players": [
+        "Daniil Medvedev",
+        "Grigor Dimitrov"
+      ],
+      "catalog": "atp_hardcourt"
+    },
+    {
+      "key": "2022_uso_kyrgios_khachanov",
+      "youtube_id": "mvbdH85TLV4",
+      "match": "US Open 2022 quarterfinal, Kyrgios vs Khachanov",
+      "start_seconds": 30,
+      "seconds": 3600,
+      "players": [
+        "Nick Kyrgios",
+        "Karen Khachanov"
+      ],
+      "catalog": "atp_hardcourt"
+    },
+    {
+      "key": "2021_ao_kyrgios_thiem",
+      "youtube_id": "VqvBtbBf5qE",
+      "match": "Australian Open 2021 third round, Kyrgios vs Thiem",
+      "start_seconds": 60,
+      "seconds": 3600,
+      "players": [
+        "Nick Kyrgios",
+        "Dominic Thiem"
+      ],
+      "catalog": "atp_hardcourt"
+    },
+    {
+      "key": "2024_uso_fritz_tiafoe",
+      "youtube_id": "4AV40TOmfe0",
+      "match": "US Open 2024 semifinal, Fritz vs Tiafoe",
+      "start_seconds": null,
+      "seconds": 3600,
+      "players": [
+        "Taylor Fritz",
+        "Frances Tiafoe"
+      ],
+      "catalog": "MORE"
+    },
+    {
+      "key": "2022_uso_rublev_tiafoe",
+      "youtube_id": "OsQzOCVrSzk",
+      "match": "US Open 2022 quarterfinal, Rublev vs Tiafoe",
+      "start_seconds": null,
+      "seconds": 3600,
+      "players": [
+        "Andrey Rublev",
+        "Frances Tiafoe"
+      ],
+      "catalog": "MORE"
+    },
+    {
+      "key": "2023_ao_rublev_djokovic",
+      "youtube_id": "GRVEHRyNNB8",
+      "match": "Australian Open 2023 quarterfinal, Rublev vs Djokovic",
+      "start_seconds": null,
+      "seconds": 3600,
+      "players": [
+        "Andrey Rublev",
+        "Novak Djokovic"
+      ],
+      "catalog": "MORE"
+    },
+    {
+      "key": "2021_uso_tiafoe_rublev",
+      "youtube_id": "ssrxfLAB_Y8",
+      "match": "US Open 2021 third round, Tiafoe vs Rublev",
+      "start_seconds": null,
+      "seconds": 3600,
+      "players": [
+        "Frances Tiafoe",
+        "Andrey Rublev"
+      ],
+      "catalog": "MORE"
+    },
+    {
+      "key": "2024_uso_fritz_zverev",
+      "youtube_id": "FgcirxnayKs",
+      "match": "US Open 2024 quarterfinal, Fritz vs Zverev",
+      "start_seconds": null,
+      "seconds": 3600,
+      "players": [
+        "Taylor Fritz",
+        "Alexander Zverev"
+      ],
+      "catalog": "MORE"
+    },
+    {
+      "key": "2024_ao_djokovic_fritz",
+      "youtube_id": "ZarYCPgfCQA",
+      "match": "Australian Open 2024 quarterfinal, Djokovic vs Fritz",
+      "start_seconds": null,
+      "seconds": 3600,
+      "players": [
+        "Novak Djokovic",
+        "Taylor Fritz"
+      ],
+      "catalog": "MORE"
+    },
+    {
+      "key": "2023_ao_shelton_paul",
+      "youtube_id": "KMflCz1WDpA",
+      "match": "Australian Open 2023 quarterfinal, Shelton vs Paul",
+      "start_seconds": null,
+      "seconds": 3600,
+      "players": [
+        "Ben Shelton",
+        "Tommy Paul"
+      ],
+      "catalog": "MORE"
+    },
+    {
+      "key": "2023_ao_djokovic_paul",
+      "youtube_id": "7dSqbzWPxek",
+      "match": "Australian Open 2023 semifinal, Djokovic vs Paul",
+      "start_seconds": null,
+      "seconds": 3600,
+      "players": [
+        "Novak Djokovic",
+        "Tommy Paul"
+      ],
+      "catalog": "MORE"
+    },
+    {
+      "key": "2025_ao_paul_zverev",
+      "youtube_id": "udi_GsVOefY",
+      "match": "Australian Open 2025 quarterfinal, Paul vs Zverev",
+      "start_seconds": null,
+      "seconds": 3600,
+      "players": [
+        "Tommy Paul",
+        "Alexander Zverev"
+      ],
+      "catalog": "MORE"
+    },
+    {
+      "key": "2023_uso_paul_shelton",
+      "youtube_id": "fy2W6WHf5eQ",
+      "match": "US Open 2023 fourth round, Paul vs Shelton",
+      "start_seconds": null,
+      "seconds": 3600,
+      "players": [
+        "Tommy Paul",
+        "Ben Shelton"
+      ],
+      "catalog": "MORE"
+    },
+    {
+      "key": "2024_uso_shelton_tiafoe",
+      "youtube_id": "8MOWcvOKwlA",
+      "match": "US Open 2024 third round, Shelton vs Tiafoe",
+      "start_seconds": null,
+      "seconds": 3600,
+      "players": [
+        "Ben Shelton",
+        "Frances Tiafoe"
+      ],
+      "catalog": "MORE"
+    },
+    {
+      "key": "2026_uso_zverev_shelton",
+      "youtube_id": "r6iz35hizA8",
+      "match": "US Open 2026 final, Zverev vs Shelton",
+      "start_seconds": null,
+      "seconds": 3600,
+      "players": [
+        "Alexander Zverev",
+        "Ben Shelton"
+      ],
+      "catalog": "MORE"
+    },
+    {
+      "key": "2023_uso_djokovic_fritz",
+      "youtube_id": "B9iBZKUAxD8",
+      "match": "US Open 2023 quarterfinal, Djokovic vs Fritz",
+      "start_seconds": null,
+      "seconds": 3600,
+      "players": [
+        "Novak Djokovic",
+        "Taylor Fritz"
+      ],
+      "catalog": "MORE"
+    },
+    {
+      "key": "2022_ao_fritz_tiafoe",
+      "youtube_id": "i9onbTfuNwU",
+      "match": "Australian Open 2022 second round, Fritz vs Tiafoe",
+      "start_seconds": null,
+      "seconds": 3600,
+      "players": [
+        "Taylor Fritz",
+        "Frances Tiafoe"
+      ],
+      "catalog": "MORE"
+    },
+    {
+      "key": "2024_uso_dimitrov_rublev",
+      "youtube_id": "IDRsM8sDdTc",
+      "match": "US Open 2024 fourth round, Dimitrov vs Rublev",
+      "start_seconds": null,
+      "seconds": 3600,
+      "players": [
+        "Grigor Dimitrov",
+        "Andrey Rublev"
+      ],
+      "catalog": "MORE"
+    },
+    {
+      "key": "2024_ao_deminaur_rublev",
+      "youtube_id": "oWi78iQGPi8",
+      "match": "Australian Open 2024 fourth round, de Minaur vs Rublev",
+      "start_seconds": null,
+      "seconds": 3600,
+      "players": [
+        "Alex de Minaur",
+        "Andrey Rublev"
+      ],
+      "catalog": "MORE"
+    },
+    {
+      "key": "2022_uso_korda_paul",
+      "youtube_id": "tQd0KIzHFPE",
+      "match": "US Open 2022 second round, Korda vs Paul",
+      "start_seconds": null,
+      "seconds": 3600,
+      "players": [
+        "Sebastian Korda",
+        "Tommy Paul"
+      ],
+      "catalog": "MORE"
+    }
+  ]
+}

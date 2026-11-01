@@ -10,12 +10,12 @@ is hidden or the camera cuts, and now and then run across both players. It descr
               with the frame made lighter or darker so the court under the player's feet is mid grey; as FEATURES: the
               shirt's colour, each other part's colour, lightness, and lightness against the shirt (the same light
               falls on all of one man, so "black shorts under a white shirt" holds in sun and shade).
-  scoreboard  the serve marker read (Opus) shortly before READS serves spread over the match: who serves, and so
+  scoreboard  the serve marker read (Codex) shortly before READS serves spread over the match: who serves, and so
               who is at the serving end. Every other read teaches the split: its chunk is that player's
               ("anchors"); the features are weighted by how well they part the anchors' two players, and every
               chunk joins the nearer look (fit). The other reads check it: names.json's "why".
   no reads    (no scoreboard, or too few markers) the chunks are split in two without anchors (split: every feature
-              that splits them in two on its own starts a 2-means, the best kept), and Opus names the two from
+              that splits them in two on its own starts a 2-means, the best kept), and Codex names the two from
               NAMES crops each.
   neither     a chunk far from both looks (beyond FAR_OUT of the typical distance): someone else who got through
               dsa.scene.players; its frames are left unlabelled.
@@ -42,7 +42,7 @@ import cv2
 import numpy as np
 
 from dsa.ingest.projects import PROJECTS, match, pair
-from dsa.opus import ask
+from dsa.codex import ask
 from dsa.paths import video_dir
 from dsa.video import frame_at
 
@@ -375,7 +375,7 @@ def units_of(spec: str) -> tuple[list[tuple], dict]:
 
 
 def reads(spec: str, n: int = READS) -> list[dict]:
-    """The scoreboard's serve marker (dsa.pages.quiz.server, Opus) shortly before n serves spread over every piece
+    """The scoreboard's serve marker (dsa.pages.quiz.server, Codex) shortly before n serves spread over every piece
     of the match: [{"video", "frame", "side", "name"}], name None when no marker was read."""
     from concurrent.futures import ThreadPoolExecutor
 
@@ -619,7 +619,7 @@ def name(spec: str, players: dict[str, dict]) -> dict:
 def run(spec: str, verbose: bool = True) -> dict:
     project = spec.split("/")[0]
     players, names = label(spec, verbose)
-    if names is None:                               # too few serve markers: Opus names the two from their crops
+    if names is None:                               # too few serve markers: Codex names the two from their crops
         names = name(spec, players)
     for v, pl in players.items():
         d = video_dir(f"{project}/{v}")

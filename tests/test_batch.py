@@ -7,6 +7,13 @@ from dsa import batch
 from dsa.ingest.projects import EXTRA, MORE, PAD_S, PROJECTS, match, piece
 
 
+def test_batch_can_start_with_a_fresh_data_root(tmp_path, monkeypatch):
+    monkeypatch.setattr(batch, "ROOT", tmp_path)
+    monkeypatch.setattr(batch, "step", lambda _: None)
+    batch.run("atp_hardcourt")
+    assert (tmp_path / "logs/batch/atp_hardcourt.lock").is_file()
+
+
 def test_second_window_continues_where_the_first_ends():
     videos = PROJECTS["atp_hardcourt"]["videos"]
     for v in [v for v in videos if not v.endswith("_b") and v not in MORE and "_x" not in v]:

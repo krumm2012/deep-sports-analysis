@@ -13,6 +13,14 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 
 class Ranges(SimpleHTTPRequestHandler):
+    def guess_type(self, path):
+        content_type = super().guess_type(path)
+        if content_type.startswith("text/") or content_type in {
+            "application/json", "application/javascript", "application/xml", "image/svg+xml"
+        }:
+            return content_type + "; charset=utf-8"
+        return content_type
+
     def send_head(self):
         m = re.fullmatch(r"bytes=(\d*)-(\d*)", self.headers.get("Range", ""))
         path = self.translate_path(self.path)
