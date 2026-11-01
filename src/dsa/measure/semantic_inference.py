@@ -59,5 +59,3 @@ def predict(model_directory, input_path, stroke_type='无法判断'):
             'core_expert_used': stroke_type if stroke_type in model.experts else None,
             'phase_order': list(PHASES), 'score_is_calibrated_probability': False,
             'accepted_fraction': float(accepted.mean()), 'segments': segments}
-
-
